@@ -10,6 +10,8 @@ import {MaskExtension} from '@deck.gl/extensions';
 const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/voyager-nolabels-gl-style/style.json';
 const AIR_PORTS =
   'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_10m_airports.geojson';
+const PLACES =
+  'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_10m_populated_places_simple.geojson';
 
 const N = 1000;
 const points = [];
@@ -25,9 +27,10 @@ export default function App() {
 
   const props = {
     // coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
-    data: AIR_PORTS,
+    // data: AIR_PORTS,
+    data: PLACES,
     pointRadiusUnits: 'pixels',
-    getPointRadius: 16,
+    getPointRadius: 8,
     getFillColor: [0, 255, 0]
   };
 
@@ -37,7 +40,7 @@ export default function App() {
       operation: OPERATION.MASK,
       pickable: true,
       ...props,
-      getPointRadius: 2.5 * props.getPointRadius // HACK, not sure why this happens
+      getPointRadius: 4 * props.getPointRadius // HACK, not sure why this happens
     }),
     new GeoJsonLayer({
       id: 'circles',
