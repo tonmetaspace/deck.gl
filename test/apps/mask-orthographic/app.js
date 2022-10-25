@@ -42,6 +42,10 @@ export default function App() {
       extensions: [new MaskExtension()],
       maskId: maskEnabled && 'mask',
       maskByInstance: false,
+      pickable: true,
+      onClick: ({object}) => {
+        console.log(object);
+      },
       ...props
     })
   ];
