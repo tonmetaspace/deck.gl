@@ -20,6 +20,9 @@ export function getMaskBounds({
   layers: Layer[];
   viewport: Viewport;
 }): MaskBounds {
+  // HACK always render whole viewport
+  return viewport.getBounds();
+
   // Join the bounds of layer data
   let bounds: MaskBounds | null = null;
   for (const layer of layers) {
