@@ -33,6 +33,7 @@ uniform float outlineBuffer;
 uniform vec4 outlineColor;
 
 varying vec4 vColor;
+varying vec3 vPickingColor;
 varying vec2 vTextureCoords;
 varying vec2 uv;
 

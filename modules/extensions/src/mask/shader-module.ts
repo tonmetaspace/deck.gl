@@ -14,23 +14,30 @@ const fs = `
 uniform sampler2D mask_texture;
 uniform int mask_channel;
 uniform bool mask_enabled;
-bool mask_isInBounds(vec2 texCoords) {
-  // HACK disable masking for now
-  // if (!mask_enabled) {
+bool mask_isInBounds(vec2 texCoords, vec3 pickingColor) {
+  if (!mask_enabled) {
     return true;
- // }
-  vec4 maskColor = texture2D(mask_texture, texCoords);
-  float maskValue = 1.0;
-  if (mask_channel == 0) {
-    maskValue = maskColor.r;
-  } else if (mask_channel == 1) {
-    maskValue = maskColor.g;
-  } else if (mask_channel == 2) {
-    maskValue = maskColor.b;
-  } else if (mask_channel == 3) {
-    maskValue = maskColor.a;
   }
-  return maskValue < 0.5;
+
+  // Visibility test
+  vec4 maskColor = texture2D(mask_texture, texCoords);
+  float delta = distance(maskColor.rgb, pickingColor);
+  float e = 0.001;
+  return delta < e;
+
+
+
+  // float maskValue = 1.0;
+  // if (mask_channel == 0) {
+  //   maskValue = maskColor.r;
+  // } else if (mask_channel == 1) {
+  //   maskValue = maskColor.g;
+  // } else if (mask_channel == 2) {
+  //   maskValue = maskColor.b;
+  // } else if (mask_channel == 3) {
+  //   maskValue = maskColor.a;
+  // }
+  // return maskValue < 0.5;
 }
 `;
 
@@ -52,7 +59,7 @@ varying vec2 mask_texCoords;
 `,
   'fs:#main-start': `
   if (mask_enabled) {
-    bool mask = mask_isInBounds(mask_texCoords);
+    bool mask = mask_isInBounds(mask_texCoords, vPickingColor);
 
     // Debug: show extent of render target
     // gl_FragColor = vec4(mask_texCoords, 0.0, 1.0);

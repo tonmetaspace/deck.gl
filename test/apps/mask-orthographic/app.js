@@ -4,10 +4,12 @@ import {render} from 'react-dom';
 import {StaticMap} from 'react-map-gl';
 import DeckGL from '@deck.gl/react';
 import {COORDINATE_SYSTEM, OPERATION} from '@deck.gl/core';
-import {ScatterplotLayer, SolidPolygonLayer} from '@deck.gl/layers';
+import {GeoJsonLayer, ScatterplotLayer, SolidPolygonLayer} from '@deck.gl/layers';
 import {MaskExtension} from '@deck.gl/extensions';
 
 const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json';
+const AIR_PORTS =
+  'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_10m_airports.geojson';
 
 const N = 1000;
 const points = [];
@@ -23,30 +25,44 @@ export default function App() {
 
   const props = {
     // coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
-    data: points,
-    radiusUnits: 'pixels',
-    getPosition: d => d.coordinates,
-    getRadius: 25,
+    data: AIR_PORTS,
+    pointRadiusUnits: 'pixels',
+    getPointRadius: 16,
     getFillColor: [0, 255, 0]
   };
 
   const layers = [
-    new ScatterplotLayer({
+    new GeoJsonLayer({
       id: 'mask',
       operation: OPERATION.MASK,
       pickable: true,
       ...props,
-      getRadius: 2 * props.getRadius // HACK, not sure why this happens
+      getPointRadius: 2.5 * props.getPointRadius // HACK, not sure why this happens
     }),
-    new ScatterplotLayer({
+    new GeoJsonLayer({
       id: 'circles',
+
       extensions: [new MaskExtension()],
       maskId: maskEnabled && 'mask',
-      maskByInstance: false,
+      maskByInstance: true,
+
+      // Line (not working??)
+      stroked: true,
+      getLineWidth: 1,
+      getLineColor: [255, 255, 255],
+      lineWidthUnits: 'pixels',
+      lineWidthMinPixels: 2,
+
       pickable: true,
       onClick: ({object}) => {
         console.log(object);
       },
+
+      // pointType: 'text',
+      pointType: 'circle',
+      getText: f => f.properties.name,
+      getTextColor: [255, 255, 255],
+      getTextSize: 18,
       ...props
     })
   ];
