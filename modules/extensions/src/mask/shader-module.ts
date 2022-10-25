@@ -14,16 +14,16 @@ const fs = `
 uniform sampler2D mask_texture;
 uniform int mask_channel;
 uniform bool mask_enabled;
-bool mask_isInBounds(vec2 texCoords, vec3 pickingColor) {
+float mask_isInBounds(vec2 texCoords, vec3 pickingColor) {
   if (!mask_enabled) {
-    return true;
+    return 1.0;
   }
 
   // Visibility test
   vec4 maskColor = texture2D(mask_texture, texCoords);
   float delta = distance(maskColor.rgb, pickingColor);
-  float e = 0.001;
-  return delta < e;
+  float e = 0.000001;
+  return step(delta, e);
 
 
 
@@ -59,13 +59,14 @@ varying vec2 mask_texCoords;
 `,
   'fs:#main-start': `
   if (mask_enabled) {
-    bool mask = mask_isInBounds(mask_texCoords, vPickingColor);
+    float mask = mask_isInBounds(mask_texCoords, vPickingColor);
 
     // Debug: show extent of render target
     // gl_FragColor = vec4(mask_texCoords, 0.0, 1.0);
     gl_FragColor = texture2D(mask_texture, mask_texCoords);
+    gl_FragColor.a = mask;
 
-    if (!mask) discard;
+    if (mask < 0.2) discard;
   }
 `
 };
