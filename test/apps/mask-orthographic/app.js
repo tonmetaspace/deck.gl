@@ -34,6 +34,7 @@ export default function App() {
     new ScatterplotLayer({
       id: 'mask',
       operation: OPERATION.MASK,
+      pickable: true,
       ...props,
       getRadius: 2 * props.getRadius // HACK, not sure why this happens
     }),

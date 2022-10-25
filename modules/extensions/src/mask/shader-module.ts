@@ -15,9 +15,10 @@ uniform sampler2D mask_texture;
 uniform int mask_channel;
 uniform bool mask_enabled;
 bool mask_isInBounds(vec2 texCoords) {
-  if (!mask_enabled) {
+  // HACK disable masking for now
+  // if (!mask_enabled) {
     return true;
-  }
+ // }
   vec4 maskColor = texture2D(mask_texture, texCoords);
   float maskValue = 1.0;
   if (mask_channel == 0) {

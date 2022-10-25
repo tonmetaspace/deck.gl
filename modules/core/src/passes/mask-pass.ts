@@ -42,16 +42,16 @@ export default class MaskPass extends LayersPass {
   render(options: MaskPassRenderOptions) {
     const gl = this.gl;
 
-    const colorMask = [false, false, false, false];
-    colorMask[options.channel] = true;
+    const colorMask = [true, true, true, true];
+    // colorMask[options.channel] = true;
 
     return withParameters(
       gl,
       {
         clearColor: [255, 255, 255, 255],
         blend: true,
-        blendFunc: [gl.ZERO, gl.ONE],
-        blendEquation: gl.FUNC_SUBTRACT,
+        // blendFunc: [gl.ZERO, gl.ONE],
+        // blendEquation: gl.FUNC_SUBTRACT,
         colorMask,
         depthTest: false
       },
