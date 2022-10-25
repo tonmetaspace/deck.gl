@@ -99,6 +99,6 @@ void main(void) {
   DECKGL_FILTER_COLOR(vFillColor, geometry);
   vLineColor = vec4(instanceLineColors.rgb, instanceLineColors.a * opacity);
   DECKGL_FILTER_COLOR(vLineColor, geometry);
-  vPickingColor = instancePickingColors / 256.0;
+  vPickingColor = instancePickingColors / 255.0;
 }
 `;
