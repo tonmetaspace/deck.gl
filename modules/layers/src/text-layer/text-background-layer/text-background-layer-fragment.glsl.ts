@@ -8,6 +8,7 @@ uniform bool stroked;
 varying vec4 vFillColor;
 varying vec4 vLineColor;
 varying float vLineWidth;
+varying vec3 vPickingColor;
 varying vec2 uv;
 varying vec2 dimensions;
 
@@ -27,5 +28,6 @@ void main(void) {
   }
 
   DECKGL_FILTER_COLOR(gl_FragColor, geometry);
+  gl_FragColor.rgb = vPickingColor;
 }
 `;

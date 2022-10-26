@@ -529,63 +529,64 @@ export default class TextLayer<DataT = any, ExtraPropsT = {}> extends CompositeL
             getBoundingRect: this.getBoundingRect
           }
         ),
-      new CharactersLayerClass(
-        {
-          sdf: fontSettings.sdf,
-          smoothing: Number.isFinite(fontSettings.smoothing)
-            ? fontSettings.smoothing
-            : DEFAULT_FONT_SETTINGS.smoothing,
-          outlineWidth: outlineWidth / (fontSettings.radius || DEFAULT_FONT_SETTINGS.radius),
-          outlineColor,
-          iconAtlas: texture,
-          iconMapping: mapping,
+      !background &&
+        new CharactersLayerClass(
+          {
+            sdf: fontSettings.sdf,
+            smoothing: Number.isFinite(fontSettings.smoothing)
+              ? fontSettings.smoothing
+              : DEFAULT_FONT_SETTINGS.smoothing,
+            outlineWidth: outlineWidth / (fontSettings.radius || DEFAULT_FONT_SETTINGS.radius),
+            outlineColor,
+            iconAtlas: texture,
+            iconMapping: mapping,
 
-          getPosition,
-          getColor,
-          getSize,
-          getAngle,
-          getPixelOffset,
+            getPosition,
+            getColor,
+            getSize,
+            getAngle,
+            getPixelOffset,
 
-          billboard,
-          sizeScale: sizeScale * scale,
-          sizeUnits,
-          sizeMinPixels: sizeMinPixels * scale,
-          sizeMaxPixels: sizeMaxPixels * scale,
+            billboard,
+            sizeScale: sizeScale * scale,
+            sizeUnits,
+            sizeMinPixels: sizeMinPixels * scale,
+            sizeMaxPixels: sizeMaxPixels * scale,
 
-          transitions: transitions && {
-            getPosition: transitions.getPosition,
-            getAngle: transitions.getAngle,
-            getColor: transitions.getColor,
-            getSize: transitions.getSize,
-            getPixelOffset: transitions.getPixelOffset
-          }
-        },
-        this.getSubLayerProps({
-          id: 'characters',
-          updateTriggers: {
-            getIcon: updateTriggers.getText,
-            getPosition: updateTriggers.getPosition,
-            getAngle: updateTriggers.getAngle,
-            getColor: updateTriggers.getColor,
-            getSize: updateTriggers.getSize,
-            getPixelOffset: updateTriggers.getPixelOffset,
-            getIconOffsets: {
-              getText: updateTriggers.getText,
-              getTextAnchor: updateTriggers.getTextAnchor,
-              getAlignmentBaseline: updateTriggers.getAlignmentBaseline,
-              styleVersion
+            transitions: transitions && {
+              getPosition: transitions.getPosition,
+              getAngle: transitions.getAngle,
+              getColor: transitions.getColor,
+              getSize: transitions.getSize,
+              getPixelOffset: transitions.getPixelOffset
             }
+          },
+          this.getSubLayerProps({
+            id: 'characters',
+            updateTriggers: {
+              getIcon: updateTriggers.getText,
+              getPosition: updateTriggers.getPosition,
+              getAngle: updateTriggers.getAngle,
+              getColor: updateTriggers.getColor,
+              getSize: updateTriggers.getSize,
+              getPixelOffset: updateTriggers.getPixelOffset,
+              getIconOffsets: {
+                getText: updateTriggers.getText,
+                getTextAnchor: updateTriggers.getTextAnchor,
+                getAlignmentBaseline: updateTriggers.getAlignmentBaseline,
+                styleVersion
+              }
+            }
+          }),
+          {
+            data,
+            _dataDiff,
+            startIndices,
+            numInstances,
+            getIconOffsets: this.getIconOffsets,
+            getIcon: getText
           }
-        }),
-        {
-          data,
-          _dataDiff,
-          startIndices,
-          numInstances,
-          getIconOffsets: this.getIconOffsets,
-          getIcon: getText
-        }
-      )
+        )
     ];
   }
 

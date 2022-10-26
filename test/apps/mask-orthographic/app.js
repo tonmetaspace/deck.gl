@@ -41,7 +41,14 @@ export default function App() {
       pickable: true,
       pointAntialiasing: false,
       ...props,
-      getPointRadius: 4 * props.getPointRadius // HACK, not sure why this happens
+      getPointRadius: 4 * props.getPointRadius, // HACK, not sure why this happens
+
+      pointType: 'text',
+      // pointType: 'circle',
+      textBackground: true,
+      getText: f => f.properties.name, // For layout!
+      getTextColor: [0, 0, 0],
+      getTextSize: 4 * 18
     }),
     new GeoJsonLayer({
       id: 'circles',
@@ -62,11 +69,12 @@ export default function App() {
         console.log(object);
       },
 
-      // pointType: 'text',
-      pointType: 'circle',
+      pointType: 'text',
+      // pointType: 'circle',
       getText: f => f.properties.name,
-      getTextColor: [255, 255, 255],
+      getTextColor: [0, 0, 0],
       getTextSize: 18,
+      textBackground: false,
       ...props
     })
   ];
