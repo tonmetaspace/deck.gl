@@ -39,6 +39,7 @@ export default function App() {
       id: 'mask',
       operation: OPERATION.MASK,
       pickable: true,
+      pointAntialiasing: false,
       ...props,
       getPointRadius: 4 * props.getPointRadius // HACK, not sure why this happens
     }),
@@ -71,8 +72,8 @@ export default function App() {
   ];
 
   const viewState = {
-    longitude: 0,
-    latitude: 0,
+    longitude: 60,
+    latitude: 40,
     zoom: 2,
     maxZoom: 20,
     pitch: 0,
