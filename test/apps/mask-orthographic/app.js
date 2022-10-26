@@ -13,42 +13,29 @@ const AIR_PORTS =
 const PLACES =
   'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_10m_populated_places_simple.geojson';
 
-const N = 1000;
-const points = [];
-for (let i = 0; i < N; i++) {
-  const coordinates = [100 * Math.random() - 50, 100 * Math.random() - 50];
-  points.push({coordinates});
-}
-
 /* eslint-disable react/no-deprecated */
 export default function App() {
   const [maskEnabled, setMaskEnabled] = useState(true);
-  const [showLayers, setShowLayers] = useState(true);
+  const [showPoints, setShowPoints] = useState(true);
+  const [showLabels, setShowLabels] = useState(false);
 
   const props = {
-    // coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
-    // data: AIR_PORTS,
     data: PLACES,
     pointRadiusUnits: 'pixels',
     getPointRadius: 8,
-    getFillColor: [0, 255, 0]
+    getFillColor: [0, 255, 0],
+    pickable: true, // Needed to send through pickingColor
+    onClick: ({object}) => console.log(object.properties)
   };
 
-  const layers = [
+  const points = [
     new GeoJsonLayer({
       id: 'mask',
       operation: OPERATION.MASK,
-      pickable: true,
       pointAntialiasing: false,
+      pointType: 'circle',
       ...props,
-      getPointRadius: 4 * props.getPointRadius, // HACK, not sure why this happens
-
-      pointType: 'text',
-      // pointType: 'circle',
-      textBackground: true,
-      getText: f => f.properties.name, // For layout!
-      getTextColor: [0, 0, 0],
-      getTextSize: 4 * 18
+      getPointRadius: 4 * props.getPointRadius // Enlarge point to increase hit area
     }),
     new GeoJsonLayer({
       id: 'circles',
@@ -57,20 +44,35 @@ export default function App() {
       maskId: maskEnabled && 'mask',
       maskByInstance: true,
 
-      // Line (not working??)
-      stroked: true,
-      getLineWidth: 1,
-      getLineColor: [255, 255, 255],
-      lineWidthUnits: 'pixels',
-      lineWidthMinPixels: 2,
+      pointType: 'circle',
+      getText: f => f.properties.name,
+      getTextColor: [0, 0, 0],
+      getTextSize: 18,
+      textBackground: false,
+      ...props
+    })
+  ];
 
-      pickable: true,
-      onClick: ({object}) => {
-        console.log(object);
-      },
+  const labels = [
+    new GeoJsonLayer({
+      id: 'mask-labels',
+      operation: OPERATION.MASK,
+      ...props,
 
       pointType: 'text',
-      // pointType: 'circle',
+      textBackground: true,
+      getText: f => f.properties.name, // For layout!
+      getTextColor: [0, 0, 0],
+      getTextSize: 4 * 18
+    }),
+    new GeoJsonLayer({
+      id: 'labels',
+
+      extensions: [new MaskExtension()],
+      maskId: maskEnabled && 'mask-labels',
+      maskByInstance: true,
+
+      pointType: 'text',
       getText: f => f.properties.name,
       getTextColor: [0, 0, 0],
       getTextSize: 18,
@@ -90,7 +92,11 @@ export default function App() {
 
   return (
     <>
-      <DeckGL layers={showLayers ? layers : []} initialViewState={viewState} controller={true}>
+      <DeckGL
+        layers={[].concat(showPoints ? points : []).concat(showLabels ? labels : [])}
+        initialViewState={viewState}
+        controller={true}
+      >
         <StaticMap reuseMaps mapStyle={MAP_STYLE} preventStyleDiffing={true} />
       </DeckGL>
       <div style={{position: 'absolute', background: 'white', padding: 10}}>
@@ -103,8 +109,12 @@ export default function App() {
           Use mask
         </label>
         <label>
-          <input type="checkbox" checked={showLayers} onChange={() => setShowLayers(!showLayers)} />
-          Show layers
+          <input type="checkbox" checked={showPoints} onChange={() => setShowPoints(!showPoints)} />
+          Show points
+        </label>
+        <label>
+          <input type="checkbox" checked={showLabels} onChange={() => setShowLabels(!showLabels)} />
+          Show labels
         </label>
       </div>
     </>
