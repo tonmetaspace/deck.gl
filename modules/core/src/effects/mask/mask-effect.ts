@@ -107,11 +107,11 @@ export default class MaskEffect implements Effect {
 
       // Minimap
       const zoom = 8;
-      const n = canvas.width;
-      for (let y = 0; y < n; y++) {
-        for (let x = 0; x < n; x++) {
-          const d = 4 * (x + y * n); // destination pixel
-          const s = 4 * (Math.floor(x / zoom) + Math.floor(y / zoom) * n); // source
+      const {width, height} = canvas;
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const d = 4 * (x + y * width); // destination pixel
+          const s = 4 * (Math.floor(x / zoom) + Math.floor(y / zoom) * width); // source
           imageData.data[d + 0] = color[s + 0];
           imageData.data[d + 1] = color[s + 1];
           imageData.data[d + 2] = color[s + 2];
