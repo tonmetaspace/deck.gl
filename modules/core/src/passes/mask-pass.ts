@@ -48,7 +48,7 @@ export default class MaskPass extends LayersPass {
     return withParameters(
       gl,
       {
-        clearColor: [255, 255, 255, 255],
+        clearColor: [0, 0, 0, 0],
         blend: true,
         // blendFunc: [gl.ZERO, gl.ONE],
         // blendEquation: gl.FUNC_SUBTRACT,
