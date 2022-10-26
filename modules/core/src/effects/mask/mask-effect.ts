@@ -85,30 +85,51 @@ export default class MaskEffect implements Effect {
     }
 
     // Debug show FBO contents on screen
-    const color = readPixelsToArray(this.maskMap);
-    let canvas = document.getElementById('fbo-canvas') as HTMLCanvasElement;
-    if (!canvas) {
-      canvas = document.createElement('canvas') as HTMLCanvasElement;
-      canvas.id = 'fbo-canvas';
-      canvas.width = this.maskMap.width;
-      canvas.height = this.maskMap.height;
-      canvas.style.zIndex = '100';
-      canvas.style.position = 'absolute';
-      canvas.style.right = '0';
-      canvas.style.border = 'blue 1px solid';
-      canvas.style.width = '256px';
-      canvas.style.transform = 'scaleY(-1)';
-      document.body.appendChild(canvas);
+    if (true) {
+      const color = readPixelsToArray(this.maskMap);
+      let canvas = document.getElementById('fbo-canvas') as HTMLCanvasElement;
+      if (!canvas) {
+        canvas = document.createElement('canvas') as HTMLCanvasElement;
+        canvas.id = 'fbo-canvas';
+        canvas.width = this.maskMap.width;
+        canvas.height = 2 * this.maskMap.height;
+        canvas.style.zIndex = '100';
+        canvas.style.position = 'absolute';
+        canvas.style.top = '0';
+        canvas.style.right = '0';
+        canvas.style.border = 'blue 1px solid';
+        canvas.style.width = '256px';
+        canvas.style.transform = 'scaleY(-1)';
+        document.body.appendChild(canvas);
+      }
+      const ctx = canvas.getContext('2d')!;
+      const imageData = ctx.createImageData(canvas.width, canvas.height);
+
+      // Minimap
+      const zoom = 8;
+      const n = canvas.width;
+      for (let y = 0; y < n; y++) {
+        for (let x = 0; x < n; x++) {
+          const d = 4 * (x + y * n); // destination pixel
+          const s = 4 * (Math.floor(x / zoom) + Math.floor(y / zoom) * n); // source
+          imageData.data[d + 0] = color[s + 0];
+          imageData.data[d + 1] = color[s + 1];
+          imageData.data[d + 2] = color[s + 2];
+          imageData.data[d + 3] = color[s + 3];
+        }
+      }
+
+      // Full map
+      const offset = color.length;
+      for (let i = 0; i < color.length; i += 4) {
+        imageData.data[offset + i + 0] = color[i + 0];
+        imageData.data[offset + i + 1] = color[i + 1];
+        imageData.data[offset + i + 2] = color[i + 2];
+        imageData.data[offset + i + 3] = color[i + 3];
+      }
+
+      ctx.putImageData(imageData, 0, 0);
     }
-    const ctx = canvas.getContext('2d')!;
-    const imageData = ctx.createImageData(this.maskMap.width, this.maskMap.height);
-    for (let i = 0; i < color.length; i += 4) {
-      imageData.data[i + 0] = color[i + 0];
-      imageData.data[i + 1] = color[i + 1];
-      imageData.data[i + 2] = color[i + 2];
-      imageData.data[i + 3] = color[i + 3] + 128;
-    }
-    ctx.putImageData(imageData, 0, 0);
   }
 
   private _renderChannel(
