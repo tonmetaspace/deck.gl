@@ -28,56 +28,51 @@ export default function App() {
     onClick: ({object}) => console.log(object.properties)
   };
 
+  const pointsProps = {
+    ...props,
+    pointType: 'circle',
+    getText: f => f.properties.name,
+    getTextColor: [0, 0, 0],
+    getTextSize: 18
+  };
+
   const points = [
     new GeoJsonLayer({
-      id: 'mask',
+      id: 'mask-points',
       operation: OPERATION.MASK,
       pointAntialiasing: false,
-      pointType: 'circle',
-      ...props,
-      getPointRadius: 4 * props.getPointRadius // Enlarge point to increase hit area
+      ...pointsProps,
+      getPointRadius: 4 * pointsProps.getPointRadius // Enlarge point to increase hit area
     }),
     new GeoJsonLayer({
-      id: 'circles',
-
+      id: 'points',
       extensions: [new MaskExtension()],
-      maskId: maskEnabled && 'mask',
-      maskByInstance: true,
-
-      pointType: 'circle',
-      getText: f => f.properties.name,
-      getTextColor: [0, 0, 0],
-      getTextSize: 18,
-      textBackground: false,
-      ...props
+      maskId: maskEnabled && 'mask-points',
+      ...pointsProps
     })
   ];
+
+  const labelsProps = {
+    ...props,
+    pointType: 'text',
+    getText: f => f.properties.name,
+    getTextColor: [0, 0, 0],
+    getTextSize: 18
+  };
 
   const labels = [
     new GeoJsonLayer({
       id: 'mask-labels',
       operation: OPERATION.MASK,
-      ...props,
-
-      pointType: 'text',
-      textBackground: true,
-      getText: f => f.properties.name, // For layout!
-      getTextColor: [0, 0, 0],
-      getTextSize: 4 * 18
+      textBackground: true, // Only draw box for mask
+      ...labelsProps,
+      getTextSize: 4 * labelsProps.getTextSize // Enlarge point to increase hit area
     }),
     new GeoJsonLayer({
       id: 'labels',
-
       extensions: [new MaskExtension()],
       maskId: maskEnabled && 'mask-labels',
-      maskByInstance: true,
-
-      pointType: 'text',
-      getText: f => f.properties.name,
-      getTextColor: [0, 0, 0],
-      getTextSize: 18,
-      textBackground: false,
-      ...props
+      ...labelsProps
     })
   ];
 
