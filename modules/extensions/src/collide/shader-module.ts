@@ -4,7 +4,6 @@ import type {Texture2D} from '@luma.gl/webgl';
 
 const vs = `
 uniform vec4 mask_bounds;
-uniform bool mask_maskByInstance;
 vec2 mask_getCoords(vec4 position) {
   return (position.xy - mask_bounds.xy) / (mask_bounds.zw - mask_bounds.xy);
 }
@@ -91,12 +90,7 @@ const inject = {
 varying vec2 mask_texCoords;
 `,
   'vs:#main-end': `
-   vec4 mask_common_position;
-   if (mask_maskByInstance) {
-     mask_common_position = project_position(vec4(geometry.worldPosition, 1.0));
-   } else {
-     mask_common_position = geometry.position;
-   }
+   vec4 mask_common_position = project_position(vec4(geometry.worldPosition, 1.0));
    mask_texCoords = mask_getCoords(mask_common_position);
 `,
   'fs:#decl': `
