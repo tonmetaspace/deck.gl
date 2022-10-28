@@ -35,6 +35,7 @@ export default class CollideEffect implements Effect {
   useInPicking = true;
 
   private dummyCollideMap?: Texture2D;
+  private oldChannelInfo: Channel | null = null;
   private collide: Collide | null = null;
   private collidePass?: CollidePass;
   private collideMap?: Texture2D;
@@ -56,6 +57,7 @@ export default class CollideEffect implements Effect {
     );
     if (maskLayers.length === 0) {
       this.collide = null;
+      this.oldChannelInfo = null;
       return;
     }
 
@@ -73,6 +75,9 @@ export default class CollideEffect implements Effect {
       layerBounds: maskLayers.map(l => l.getBounds()),
       layers: maskLayers
     };
+    if (!this.oldChannelInfo) {
+      this.oldChannelInfo = channel;
+    }
 
     // TODO - support multiple views
     const viewport = viewports[0];
@@ -153,16 +158,30 @@ export default class CollideEffect implements Effect {
       viewportChanged: boolean;
     }
   ) {
-    // For now always rerender
-    const maskChanged = true;
+    const oldChannelInfo = this.oldChannelInfo;
+    if (!oldChannelInfo) {
+      return;
+    }
 
-    // if (maskChanged || viewportChanged) {
-    // Recalculate mask bounds
-    this.lastViewport = viewport;
+    const maskChanged =
+      // If a channel is new
+      channelInfo === oldChannelInfo ||
+      // If sublayers have changed
+      oldChannelInfo.layers.length !== channelInfo.layers.length ||
+      // If a sublayer's positions have been updated, the cached bounds will change shallowly
+      channelInfo.layerBounds.some((b, i) => b !== oldChannelInfo.layerBounds[i]);
 
-    channelInfo.bounds = getMaskBounds({layers: channelInfo.layers, viewport});
+    channelInfo.bounds = oldChannelInfo.bounds;
+    channelInfo.maskBounds = oldChannelInfo.maskBounds;
+    this.oldChannelInfo = channelInfo;
 
-    if (maskChanged) {
+    // console.log('maskChanged', maskChanged, 'viewportChanged', viewportChanged);
+    if (maskChanged || viewportChanged) {
+      // Recalculate mask bounds
+      this.lastViewport = viewport;
+
+      channelInfo.bounds = getMaskBounds({layers: channelInfo.layers, viewport});
+
       // Rerender mask FBO
       const {collidePass, collideMap} = this;
 
@@ -188,7 +207,6 @@ export default class CollideEffect implements Effect {
         }
       });
     }
-    //}
 
     if (channelInfo.maskBounds) {
       this.collide = {
@@ -223,5 +241,6 @@ export default class CollideEffect implements Effect {
 
     this.lastViewport = undefined;
     this.collide = null;
+    this.oldChannelInfo = null;
   }
 }
