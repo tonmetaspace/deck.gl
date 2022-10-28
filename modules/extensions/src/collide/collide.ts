@@ -31,7 +31,7 @@ export default class CollideExtension extends LayerExtension {
     const {collide} = moduleParameters;
     const {viewport} = context;
     if (collide && collideEnabled) {
-      const {index, bounds, coordinateOrigin: fromCoordinateOrigin} = collide;
+      const {index, coordinateOrigin: fromCoordinateOrigin} = collide;
       let {coordinateSystem: fromCoordinateSystem} = collide;
       uniforms.collide_enabled = true;
 
@@ -41,9 +41,6 @@ export default class CollideExtension extends LayerExtension {
           : COORDINATE_SYSTEM.CARTESIAN;
       }
       const opts = {modelMatrix: null, fromCoordinateOrigin, fromCoordinateSystem};
-      const bl = this.projectPosition([bounds[0], bounds[1], 0], opts);
-      const tr = this.projectPosition([bounds[2], bounds[3], 0], opts);
-      uniforms.collide_bounds = [bl[0], bl[1], tr[0], tr[1]];
     } else {
       uniforms.collide_enabled = false;
     }

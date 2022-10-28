@@ -3,9 +3,11 @@ import type {_ShaderModule as ShaderModule} from '@deck.gl/core';
 import type {Texture2D} from '@luma.gl/webgl';
 
 const vs = `
-uniform vec4 collide_bounds;
 vec2 collide_getCoords(vec4 position) {
-  return (position.xy - collide_bounds.xy) / (collide_bounds.zw - collide_bounds.xy);
+  vec4 collide_clipspace = project_common_position_to_clipspace(position);
+
+  // Why the 0.75??
+  return (0.5 * collide_clipspace.xy + vec2(0.75)) / collide_clipspace.w;
 }
 `;
 
@@ -77,10 +79,7 @@ varying vec2 collide_texCoords;
 `,
   'vs:#main-end': `
    vec4 collide_common_position = project_position(vec4(geometry.worldPosition, 1.0));
-   vec4 collide_clipspace = project_common_position_to_clipspace(collide_common_position);
-
-   // Why the 0.75??
-   collide_texCoords = (0.5 * collide_clipspace.xy + vec2(0.75)) / collide_clipspace.w;
+   collide_texCoords = collide_getCoords(collide_common_position);
 `,
   'fs:#decl': `
 varying vec2 collide_texCoords;
