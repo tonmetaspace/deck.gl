@@ -1,7 +1,7 @@
 import {Texture2D} from '@luma.gl/core';
 import {readPixelsToArray} from '@luma.gl/core';
 import {equals} from '@math.gl/core';
-import MaskPass from '../../passes/mask-pass';
+import CollidePass from '../../passes/collide-pass';
 import {OPERATION} from '../../lib/constants';
 import {getMaskBounds, getMaskViewport} from './utils';
 import log from '../../utils/log';
@@ -40,7 +40,7 @@ export default class MaskEffect implements Effect {
   private dummyMaskMap?: Texture2D;
   private channels: (Channel | null)[] = [];
   private masks: Record<string, Mask> | null = null;
-  private maskPass?: MaskPass;
+  private collidePass?: CollidePass;
   private maskMap?: Texture2D;
   private lastViewport?: Viewport;
 
@@ -65,9 +65,9 @@ export default class MaskEffect implements Effect {
     }
     this.masks = {};
 
-    if (!this.maskPass) {
-      this.maskPass = new MaskPass(gl, {id: 'default-mask'});
-      this.maskMap = this.maskPass.maskMap;
+    if (!this.collidePass) {
+      this.collidePass = new CollidePass(gl, {id: 'default-mask'});
+      this.maskMap = this.collidePass.maskMap;
     }
 
     // Map layers to channels
@@ -178,7 +178,7 @@ export default class MaskEffect implements Effect {
 
       if (maskChanged || !equals(channelInfo.bounds, oldChannelInfo.bounds)) {
         // Rerender mask FBO
-        const {maskPass, maskMap} = this;
+        const {collidePass, maskMap} = this;
 
         const maskViewport = getMaskViewport({
           bounds: channelInfo.bounds,
@@ -189,8 +189,8 @@ export default class MaskEffect implements Effect {
 
         channelInfo.maskBounds = maskViewport ? maskViewport.getBounds() : [0, 0, 1, 1];
 
-        // @ts-ignore (2532) This method is only called from preRender where maskPass is defined
-        maskPass.render({
+        // @ts-ignore (2532) This method is only called from preRender where collidePass is defined
+        collidePass.render({
           pass: 'mask',
           channel: channelInfo.index,
           layers: channelInfo.layers,
@@ -282,9 +282,9 @@ export default class MaskEffect implements Effect {
       this.dummyMaskMap = undefined;
     }
 
-    if (this.maskPass) {
-      this.maskPass.delete();
-      this.maskPass = undefined;
+    if (this.collidePass) {
+      this.collidePass.delete();
+      this.collidePass = undefined;
       this.maskMap = undefined;
     }
 
