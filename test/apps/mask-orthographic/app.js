@@ -11,13 +11,29 @@ const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/voyager-nolabels-gl-style/st
 const AIR_PORTS =
   'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_10m_airports.geojson';
 const PLACES =
-  'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_10m_populated_places_simple.geojson';
+  // 'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_10m_populated_places_simple.geojson';
+  'ne_10m_populated_places_simple.geojson';
+const COUNTRIES =
+  // 'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_50m_admin_0_scale_rank.geojson';
+  'ne_50m_admin_0_scale_rank.geojson';
+
+const basemap = new GeoJsonLayer({
+  id: 'base-map',
+  data: COUNTRIES,
+  // Styles
+  stroked: true,
+  filled: true,
+  lineWidthMinPixels: 2,
+  opacity: 0.4,
+  getLineColor: [60, 60, 60],
+  getFillColor: [200, 200, 200]
+});
 
 /* eslint-disable react/no-deprecated */
 export default function App() {
   const [maskEnabled, setMaskEnabled] = useState(true);
   const [showPoints, setShowPoints] = useState(true);
-  const [showLabels, setShowLabels] = useState(false);
+  const [showLabels, setShowLabels] = useState(true);
 
   const props = {
     data: PLACES,
@@ -85,15 +101,14 @@ export default function App() {
     bearing: 0
   };
 
+  //<StaticMap reuseMaps mapStyle={MAP_STYLE} preventStyleDiffing={true} />
   return (
     <>
       <DeckGL
-        layers={[].concat(showPoints ? points : []).concat(showLabels ? labels : [])}
+        layers={[basemap].concat(showPoints ? points : []).concat(showLabels ? labels : [])}
         initialViewState={viewState}
         controller={true}
-      >
-        <StaticMap reuseMaps mapStyle={MAP_STYLE} preventStyleDiffing={true} />
-      </DeckGL>
+      ></DeckGL>
       <div style={{position: 'absolute', background: 'white', padding: 10}}>
         <label>
           <input
