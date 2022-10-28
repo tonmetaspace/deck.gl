@@ -3,26 +3,26 @@ import type {_ShaderModule as ShaderModule} from '@deck.gl/core';
 import type {Texture2D} from '@luma.gl/webgl';
 
 const vs = `
-uniform vec4 mask_bounds;
+uniform vec4 collide_bounds;
 vec2 mask_getCoords(vec4 position) {
-  return (position.xy - mask_bounds.xy) / (mask_bounds.zw - mask_bounds.xy);
+  return (position.xy - collide_bounds.xy) / (collide_bounds.zw - collide_bounds.xy);
 }
 `;
 
 const fs = `
-uniform sampler2D mask_texture;
+uniform sampler2D collide_texture;
 uniform int mask_channel;
-uniform bool mask_enabled;
+uniform bool collide_enabled;
 
 float match(vec2 tex, vec3 pickingColor) {
-  vec4 maskColor = texture2D(mask_texture, tex);
+  vec4 maskColor = texture2D(collide_texture, tex);
   float delta = distance(maskColor.rgb, pickingColor);
   float e = 0.000001;
   return step(delta, e);
 }
 
 float mask_isInBounds(vec2 texCoords, vec3 pickingColor) {
-  if (!mask_enabled) {
+  if (!collide_enabled) {
     return 1.0;
   }
 
@@ -97,12 +97,12 @@ varying vec2 mask_texCoords;
 varying vec2 mask_texCoords;
 `,
   'fs:#main-end': `
-  if (mask_enabled) {
+  if (collide_enabled) {
     float mask = mask_isInBounds(mask_texCoords, vPickingColor);
 
     // Debug: show extent of render target
     // gl_FragColor = vec4(mask_texCoords, 0.0, 1.0);
-    // gl_FragColor = texture2D(mask_texture, mask_texCoords);
+    // gl_FragColor = texture2D(collide_texture, mask_texCoords);
 
     // Fade out mask
     gl_FragColor.a *= mask;
@@ -112,25 +112,25 @@ varying vec2 mask_texCoords;
 `
 };
 
-type MaskModuleSettings = {
+type CollideModuleSettings = {
   collideMap?: Texture2D;
 };
 
 /* eslint-disable camelcase */
-const getMaskUniforms = (opts?: MaskModuleSettings | {}): Record<string, any> => {
+const getCollideUniforms = (opts?: CollideModuleSettings | {}): Record<string, any> => {
   if (opts && 'collideMap' in opts) {
     return {
-      mask_texture: opts.collideMap
+      collide_texture: opts.collideMap
     };
   }
   return {};
 };
 
 export default {
-  name: 'mask',
+  name: 'collide',
   dependencies: [project],
   vs,
   fs,
   inject,
-  getUniforms: getMaskUniforms
-} as ShaderModule<MaskModuleSettings>;
+  getUniforms: getCollideUniforms
+} as ShaderModule<CollideModuleSettings>;
