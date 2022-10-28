@@ -31,7 +31,7 @@ const basemap = new GeoJsonLayer({
 
 /* eslint-disable react/no-deprecated */
 export default function App() {
-  const [maskEnabled, setMaskEnabled] = useState(true);
+  const [collideEnabled, setCollideEnabled] = useState(true);
   const [showPoints, setShowPoints] = useState(true);
   const [showLabels, setShowLabels] = useState(true);
 
@@ -63,7 +63,7 @@ export default function App() {
     new GeoJsonLayer({
       id: 'points',
       extensions: [new CollideExtension()],
-      maskId: maskEnabled && 'collision-mask', // TODO should introduce `collide` prop
+      collideEnabled,
       ...pointsProps
     })
   ];
@@ -87,7 +87,7 @@ export default function App() {
     new GeoJsonLayer({
       id: 'labels',
       extensions: [new CollideExtension()],
-      maskId: maskEnabled && 'collision-mask',
+      collideEnabled,
       ...labelsProps
     })
   ];
@@ -113,8 +113,8 @@ export default function App() {
         <label>
           <input
             type="checkbox"
-            checked={maskEnabled}
-            onChange={() => setMaskEnabled(!maskEnabled)}
+            checked={collideEnabled}
+            onChange={() => setCollideEnabled(!collideEnabled)}
           />
           Use mask
         </label>

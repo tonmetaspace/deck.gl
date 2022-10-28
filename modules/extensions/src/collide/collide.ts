@@ -4,19 +4,19 @@ import mask from './shader-module';
 import type {Layer} from '@deck.gl/core';
 
 const defaultProps = {
-  maskId: ''
+  collideEnabled: true
 };
 
 export type CollideExtensionProps = {
   /**
-   * Id of the layer that defines the mask. The mask layer must use the prop `operation: 'mask'`.
-   * Masking is disabled if `maskId` is empty or no valid mask layer with the specified id is found.
+   * Collission detection is disabled if `collideEnabled` is false.
    */
-  maskId?: string;
+  collideEnabled?: boolean;
   /**
    * controls whether an object is clipped by its anchor (usually defined by an accessor called `getPosition`, e.g. icon, scatterplot) or by its geometry (e.g. path, polygon).
    * If not specified, it is automatically deduced from the layer.
    */
+  // TODO remove!!
   maskByInstance?: boolean;
 };
 
@@ -42,10 +42,10 @@ export default class CollideExtension extends LayerExtension {
   /* eslint-disable camelcase */
   draw(this: Layer<CollideExtensionProps>, {uniforms, context, moduleParameters}: any) {
     uniforms.mask_maskByInstance = this.state.maskByInstance;
-    const {maskId = ''} = this.props;
+    const {collideEnabled = true} = this.props;
     const {collide} = moduleParameters;
     const {viewport} = context;
-    if (collide) {
+    if (collide && collideEnabled) {
       const {index, bounds, coordinateOrigin: fromCoordinateOrigin} = collide;
       let {coordinateSystem: fromCoordinateSystem} = collide;
       uniforms.mask_enabled = true;
@@ -61,9 +61,6 @@ export default class CollideExtension extends LayerExtension {
       const tr = this.projectPosition([bounds[2], bounds[3], 0], opts);
       uniforms.mask_bounds = [bl[0], bl[1], tr[0], tr[1]];
     } else {
-      if (maskId) {
-        log.warn(`Could not find a mask layer with id: ${maskId}`)();
-      }
       uniforms.mask_enabled = false;
     }
   }
