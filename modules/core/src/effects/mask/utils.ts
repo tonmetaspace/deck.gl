@@ -20,23 +20,6 @@ export function getMaskBounds({
   layers: Layer[];
   viewport: Viewport;
 }): MaskBounds {
-  // HACK always render whole viewport
-  const b = viewport.getBounds();
-  //  return b;
-
-  // Try snapping - doesn't look great
-  const res = 0.05;
-  let w = (b[2] - b[0]) * res;
-  let h = (b[3] - b[1]) * res;
-  w = parseFloat(w.toPrecision(3));
-
-  b[0] = Math.round(b[0] / w) * w;
-  b[2] = b[0] + w / res; // Fewer state changes when panning
-  b[1] = Math.round(b[1] / w) * w;
-  b[3] = Math.round(b[3] / w) * w;
-
-  return b;
-
   // Join the bounds of layer data
   let bounds: MaskBounds | null = null;
   for (const layer of layers) {

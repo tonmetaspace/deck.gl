@@ -1,5 +1,5 @@
 import {Texture2D} from '@luma.gl/core';
-import {readPixelsToArray} from '@luma.gl/core';
+// import {readPixelsToArray} from '@luma.gl/core';
 import {equals} from '@math.gl/core';
 import MaskPass from '../../passes/mask-pass';
 import {OPERATION} from '../../lib/constants';
@@ -55,9 +55,7 @@ export default class MaskEffect implements Effect {
       });
     }
 
-    const maskLayers = layers.filter(
-      l => l.props.visible && l.props.operation === OPERATION.COLLIDE
-    );
+    const maskLayers = layers.filter(l => l.props.visible && l.props.operation === OPERATION.MASK);
     if (maskLayers.length === 0) {
       this.masks = null;
       this.channels.length = 0;
@@ -86,55 +84,31 @@ export default class MaskEffect implements Effect {
       });
     }
 
-    // Debug show FBO contents on screen
-    if (true) {
-      const color = readPixelsToArray(this.maskMap);
-      let canvas = document.getElementById('fbo-canvas') as HTMLCanvasElement;
-      const minimap = false;
-      if (!canvas) {
-        canvas = document.createElement('canvas') as HTMLCanvasElement;
-        canvas.id = 'fbo-canvas';
-        canvas.width = this.maskMap.width;
-        canvas.height = (minimap ? 2 : 1) * this.maskMap.height;
-        canvas.style.zIndex = '100';
-        canvas.style.position = 'absolute';
-        canvas.style.top = '0';
-        canvas.style.right = '0';
-        canvas.style.border = 'blue 1px solid';
-        canvas.style.width = '256px';
-        canvas.style.transform = 'scaleY(-1)';
-        document.body.appendChild(canvas);
-      }
-      const ctx = canvas.getContext('2d')!;
-      const imageData = ctx.createImageData(canvas.width, canvas.height);
-
-      // Minimap
-      if (minimap) {
-        const zoom = 8; // Zoom factor for minimap
-        const {width, height} = canvas;
-        for (let y = 0; y < height; y++) {
-          for (let x = 0; x < width; x++) {
-            const d = 4 * (x + y * width); // destination pixel
-            const s = 4 * (Math.floor(x / zoom) + Math.floor(y / zoom) * width); // source
-            imageData.data[d + 0] = color[s + 0];
-            imageData.data[d + 1] = color[s + 1];
-            imageData.data[d + 2] = color[s + 2];
-            imageData.data[d + 3] = color[s + 3];
-          }
-        }
-      }
-
-      // Full map
-      const offset = minimap ? color.length : 0;
-      for (let i = 0; i < color.length; i += 4) {
-        imageData.data[offset + i + 0] = color[i + 0];
-        imageData.data[offset + i + 1] = color[i + 1];
-        imageData.data[offset + i + 2] = color[i + 2];
-        imageData.data[offset + i + 3] = color[i + 3];
-      }
-
-      ctx.putImageData(imageData, 0, 0);
-    }
+    // // Debug show FBO contents on screen
+    // const color = readPixelsToArray(this.maskMap);
+    // let canvas = document.getElementById('fbo-canvas');
+    // if (!canvas) {
+    //   canvas = document.createElement('canvas');
+    //   canvas.id = 'fbo-canvas';
+    //   canvas.width = this.maskMap.width;
+    //   canvas.height = this.maskMap.height;
+    //   canvas.style.zIndex = 100;
+    //   canvas.style.position = 'absolute';
+    //   canvas.style.right = 0;
+    //   canvas.style.border = 'blue 1px solid';
+    //   canvas.style.width = '256px';
+    //   canvas.style.transform = 'scaleY(-1)';
+    //   document.body.appendChild(canvas);
+    // }
+    // const ctx = canvas.getContext('2d');
+    // const imageData = ctx.createImageData(this.maskMap.width, this.maskMap.height);
+    // for (let i = 0; i < color.length; i += 4) {
+    //   imageData.data[i + 0] = color[i + 0];
+    //   imageData.data[i + 1] = color[i + 1];
+    //   imageData.data[i + 2] = color[i + 2];
+    //   imageData.data[i + 3] = color[i + 3] + 128;
+    // }
+    // ctx.putImageData(imageData, 0, 0);
   }
 
   private _renderChannel(
@@ -225,8 +199,7 @@ export default class MaskEffect implements Effect {
     const channelMap = {};
     let channelCount = 0;
     for (const layer of maskLayers) {
-      // Hack to render all layers into collision mask
-      const id = 'collision-mask'; // layer.root;
+      const {id} = layer.root;
       let channelInfo = channelMap[id];
       if (!channelInfo) {
         if (++channelCount > 4) {

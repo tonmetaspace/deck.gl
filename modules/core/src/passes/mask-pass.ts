@@ -42,25 +42,25 @@ export default class MaskPass extends LayersPass {
   render(options: MaskPassRenderOptions) {
     const gl = this.gl;
 
-    const colorMask = [true, true, true, true];
-    // colorMask[options.channel] = true;
+    const colorMask = [false, false, false, false];
+    colorMask[options.channel] = true;
 
     return withParameters(
       gl,
       {
-        clearColor: [0, 0, 0, 0],
-        blend: false,
-        // blendFunc: [gl.ZERO, gl.ONE],
-        // blendEquation: gl.FUNC_SUBTRACT,
+        clearColor: [255, 255, 255, 255],
+        blend: true,
+        blendFunc: [gl.ZERO, gl.ONE],
+        blendEquation: gl.FUNC_SUBTRACT,
         colorMask,
-        depthTest: false // TODO Perhaps true to allow correct sorting between layers
+        depthTest: false
       },
       () => super.render({...options, target: this.fbo, pass: 'mask'})
     );
   }
 
   shouldDrawLayer(layer) {
-    return layer.props.operation === OPERATION.COLLIDE;
+    return layer.props.operation === OPERATION.MASK;
   }
 
   delete() {

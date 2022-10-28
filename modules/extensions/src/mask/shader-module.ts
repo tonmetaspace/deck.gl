@@ -14,75 +14,22 @@ const fs = `
 uniform sampler2D mask_texture;
 uniform int mask_channel;
 uniform bool mask_enabled;
-
-float match(vec2 tex, vec3 pickingColor) {
-  vec4 maskColor = texture2D(mask_texture, tex);
-  float delta = distance(maskColor.rgb, pickingColor);
-  float e = 0.000001;
-  return step(delta, e);
-}
-
-float mask_isInBounds(vec2 texCoords, vec3 pickingColor) {
+bool mask_isInBounds(vec2 texCoords) {
   if (!mask_enabled) {
-    return 1.0;
+    return true;
   }
-
-  float O = 0.0;
-  vec2 dx = 2.0 * vec2(1.0 / 2048.0, 0.0);
-  vec2 dy = dx.yx;
-  // Visibility test
-
-  vec2 dd = -2.0 * dy;
-  O += match(texCoords + 2.0 * dx + dd, pickingColor);
-  O += match(texCoords + dx + dd , pickingColor);
-  O += match(texCoords + dd, pickingColor);
-  O += match(texCoords - dx + dd, pickingColor);
-  O += match(texCoords - 2.0 * dx + dd, pickingColor);
-
-  dd = -1.0 * dy;
-  O += match(texCoords + 2.0 * dx + dd, pickingColor);
-  O += match(texCoords + dx + dd , pickingColor);
-  O += match(texCoords + dd, pickingColor);
-  O += match(texCoords - dx + dd, pickingColor);
-  O += match(texCoords - 2.0 * dx + dd, pickingColor);
-
-  dd = 0.0 * dy;
-  O += match(texCoords + 2.0 * dx + dd, pickingColor);
-  O += match(texCoords + dx + dd , pickingColor);
-  O += match(texCoords + dd, pickingColor);
-  O += match(texCoords - dx + dd, pickingColor);
-  O += match(texCoords - 2.0 * dx + dd, pickingColor);
-
-  dd = 1.0 * dy;
-  O += match(texCoords + 2.0 * dx + dd, pickingColor);
-  O += match(texCoords + dx + dd , pickingColor);
-  O += match(texCoords + dd, pickingColor);
-  O += match(texCoords - dx + dd, pickingColor);
-  O += match(texCoords - 2.0 * dx + dd, pickingColor);
-
-  dd = 2.0 * dy;
-  O += match(texCoords + 2.0 * dx + dd, pickingColor);
-  O += match(texCoords + dx + dd , pickingColor);
-  O += match(texCoords + dd, pickingColor);
-  O += match(texCoords - dx + dd, pickingColor);
-  O += match(texCoords - 2.0 * dx + dd, pickingColor);
-
-  O = O / 25.0;
-
-  return pow(O, 2.2);
-
-
-  // float maskValue = 1.0;
-  // if (mask_channel == 0) {
-  //   maskValue = maskColor.r;
-  // } else if (mask_channel == 1) {
-  //   maskValue = maskColor.g;
-  // } else if (mask_channel == 2) {
-  //   maskValue = maskColor.b;
-  // } else if (mask_channel == 3) {
-  //   maskValue = maskColor.a;
-  // }
-  // return maskValue < 0.5;
+  vec4 maskColor = texture2D(mask_texture, texCoords);
+  float maskValue = 1.0;
+  if (mask_channel == 0) {
+    maskValue = maskColor.r;
+  } else if (mask_channel == 1) {
+    maskValue = maskColor.g;
+  } else if (mask_channel == 2) {
+    maskValue = maskColor.b;
+  } else if (mask_channel == 3) {
+    maskValue = maskColor.a;
+  }
+  return maskValue < 0.5;
 }
 `;
 
@@ -102,18 +49,15 @@ varying vec2 mask_texCoords;
   'fs:#decl': `
 varying vec2 mask_texCoords;
 `,
-  'fs:#main-end': `
+  'fs:#main-start': `
   if (mask_enabled) {
-    float mask = mask_isInBounds(mask_texCoords, vPickingColor);
+    bool mask = mask_isInBounds(mask_texCoords);
 
     // Debug: show extent of render target
     // gl_FragColor = vec4(mask_texCoords, 0.0, 1.0);
-    // gl_FragColor = texture2D(mask_texture, mask_texCoords);
+    gl_FragColor = texture2D(mask_texture, mask_texCoords);
 
-    // Fade out mask
-    gl_FragColor.a *= mask;
-
-    if (mask < 0.01) discard;
+    if (!mask) discard;
   }
 `
 };
