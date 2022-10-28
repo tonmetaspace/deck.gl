@@ -223,7 +223,8 @@ export default class MaskEffect implements Effect {
     const channelMap = {};
     let channelCount = 0;
     for (const layer of maskLayers) {
-      const {id} = layer.root;
+      // Hack to render all layers into collision mask
+      const id = 'collision-mask'; // layer.root;
       let channelInfo = channelMap[id];
       if (!channelInfo) {
         if (++channelCount > 4) {

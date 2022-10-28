@@ -54,7 +54,7 @@ export default function App() {
 
   const points = [
     new GeoJsonLayer({
-      id: 'mask-points',
+      id: 'mask-points', // Hacked to 'collision-mask' in MaskEffect
       operation: OPERATION.MASK,
       pointAntialiasing: false,
       ...pointsProps,
@@ -63,7 +63,7 @@ export default function App() {
     new GeoJsonLayer({
       id: 'points',
       extensions: [new MaskExtension()],
-      maskId: maskEnabled && 'mask-points',
+      maskId: maskEnabled && 'collision-mask',
       ...pointsProps
     })
   ];
@@ -78,7 +78,7 @@ export default function App() {
 
   const labels = [
     new GeoJsonLayer({
-      id: 'mask-labels',
+      id: 'mask-labels', // Hacked to 'collision-mask' in MaskEffect
       operation: OPERATION.MASK,
       textBackground: true, // Only draw box for mask
       ...labelsProps,
@@ -87,7 +87,7 @@ export default function App() {
     new GeoJsonLayer({
       id: 'labels',
       extensions: [new MaskExtension()],
-      maskId: maskEnabled && 'mask-labels',
+      maskId: maskEnabled && 'collision-mask',
       ...labelsProps
     })
   ];
@@ -109,7 +109,7 @@ export default function App() {
         initialViewState={viewState}
         controller={true}
       ></DeckGL>
-      <div style={{position: 'absolute', background: 'white', padding: 10}}>
+      <div style={{left: 200, position: 'absolute', background: 'white', padding: 10}}>
         <label>
           <input
             type="checkbox"
