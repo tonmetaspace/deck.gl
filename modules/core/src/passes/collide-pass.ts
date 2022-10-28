@@ -4,13 +4,10 @@ import LayersPass from './layers-pass';
 
 import type {LayersPassRenderOptions} from './layers-pass';
 
-type CollidePassRenderOptions = LayersPassRenderOptions & {
-  /** The channel to render into, 0:red, 1:green, 2:blue, 3:alpha */
-  channel: number;
-};
+type CollidePassRenderOptions = LayersPassRenderOptions & {};
 
 export default class CollidePass extends LayersPass {
-  maskMap: Texture2D;
+  collideMap: Texture2D;
   fbo: Framebuffer;
 
   constructor(gl, props: {id: string; mapSize?: number}) {
@@ -18,7 +15,7 @@ export default class CollidePass extends LayersPass {
 
     const {mapSize = 2048} = props;
 
-    this.maskMap = new Texture2D(gl, {
+    this.collideMap = new Texture2D(gl, {
       width: mapSize,
       height: mapSize,
       parameters: {
@@ -30,11 +27,11 @@ export default class CollidePass extends LayersPass {
     });
 
     this.fbo = new Framebuffer(gl, {
-      id: 'maskmap',
+      id: 'collidemap',
       width: mapSize,
       height: mapSize,
       attachments: {
-        [gl.COLOR_ATTACHMENT0]: this.maskMap
+        [gl.COLOR_ATTACHMENT0]: this.collideMap
       }
     });
   }
@@ -65,6 +62,6 @@ export default class CollidePass extends LayersPass {
 
   delete() {
     this.fbo.delete();
-    this.maskMap.delete();
+    this.collideMap.delete();
   }
 }

@@ -119,14 +119,14 @@ varying vec2 mask_texCoords;
 };
 
 type MaskModuleSettings = {
-  maskMap?: Texture2D;
+  collideMap?: Texture2D;
 };
 
 /* eslint-disable camelcase */
 const getMaskUniforms = (opts?: MaskModuleSettings | {}): Record<string, any> => {
-  if (opts && 'maskMap' in opts) {
+  if (opts && 'collideMap' in opts) {
     return {
-      mask_texture: opts.maskMap
+      mask_texture: opts.collideMap
     };
   }
   return {};

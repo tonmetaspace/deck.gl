@@ -41,7 +41,7 @@ export default class MaskEffect implements Effect {
   private channels: (Channel | null)[] = [];
   private masks: Record<string, Mask> | null = null;
   private collidePass?: CollidePass;
-  private maskMap?: Texture2D;
+  private collideMap?: Texture2D;
   private lastViewport?: Viewport;
 
   preRender(
@@ -67,7 +67,7 @@ export default class MaskEffect implements Effect {
 
     if (!this.collidePass) {
       this.collidePass = new CollidePass(gl, {id: 'default-mask'});
-      this.maskMap = this.collidePass.maskMap;
+      this.collideMap = this.collidePass.collideMap;
     }
 
     // Map layers to channels
@@ -88,14 +88,14 @@ export default class MaskEffect implements Effect {
 
     // Debug show FBO contents on screen
     if (true) {
-      const color = readPixelsToArray(this.maskMap);
+      const color = readPixelsToArray(this.collideMap);
       let canvas = document.getElementById('fbo-canvas') as HTMLCanvasElement;
       const minimap = false;
       if (!canvas) {
         canvas = document.createElement('canvas') as HTMLCanvasElement;
         canvas.id = 'fbo-canvas';
-        canvas.width = this.maskMap.width;
-        canvas.height = (minimap ? 2 : 1) * this.maskMap.height;
+        canvas.width = this.collideMap.width;
+        canvas.height = (minimap ? 2 : 1) * this.collideMap.height;
         canvas.style.zIndex = '100';
         canvas.style.position = 'absolute';
         canvas.style.top = '0';
@@ -178,13 +178,13 @@ export default class MaskEffect implements Effect {
 
       if (maskChanged || !equals(channelInfo.bounds, oldChannelInfo.bounds)) {
         // Rerender mask FBO
-        const {collidePass, maskMap} = this;
+        const {collidePass, collideMap} = this;
 
         const maskViewport = getMaskViewport({
           bounds: channelInfo.bounds,
           viewport,
-          width: maskMap.width,
-          height: maskMap.height
+          width: collideMap.width,
+          height: collideMap.height
         });
 
         channelInfo.maskBounds = maskViewport ? maskViewport.getBounds() : [0, 0, 1, 1];
@@ -192,7 +192,6 @@ export default class MaskEffect implements Effect {
         // @ts-ignore (2532) This method is only called from preRender where collidePass is defined
         collidePass.render({
           pass: 'mask',
-          channel: channelInfo.index,
           layers: channelInfo.layers,
           layerFilter,
           viewports: maskViewport ? [maskViewport] : [],
@@ -267,11 +266,11 @@ export default class MaskEffect implements Effect {
   }
 
   getModuleParameters(): {
-    maskMap: Texture2D;
+    collideMap: Texture2D;
     maskChannels: Record<string, Mask> | null;
   } {
     return {
-      maskMap: this.masks ? this.maskMap : this.dummyMaskMap,
+      collideMap: this.masks ? this.collideMap : this.dummyMaskMap,
       maskChannels: this.masks
     };
   }
@@ -285,7 +284,7 @@ export default class MaskEffect implements Effect {
     if (this.collidePass) {
       this.collidePass.delete();
       this.collidePass = undefined;
-      this.maskMap = undefined;
+      this.collideMap = undefined;
     }
 
     this.lastViewport = undefined;
