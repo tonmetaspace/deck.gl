@@ -88,11 +88,12 @@ export default class MaskEffect implements Effect {
     if (true) {
       const color = readPixelsToArray(this.maskMap);
       let canvas = document.getElementById('fbo-canvas') as HTMLCanvasElement;
+      const minimap = false;
       if (!canvas) {
         canvas = document.createElement('canvas') as HTMLCanvasElement;
         canvas.id = 'fbo-canvas';
         canvas.width = this.maskMap.width;
-        canvas.height = 2 * this.maskMap.height;
+        canvas.height = (minimap ? 2 : 1) * this.maskMap.height;
         canvas.style.zIndex = '100';
         canvas.style.position = 'absolute';
         canvas.style.top = '0';
@@ -106,21 +107,23 @@ export default class MaskEffect implements Effect {
       const imageData = ctx.createImageData(canvas.width, canvas.height);
 
       // Minimap
-      const zoom = 8;
-      const {width, height} = canvas;
-      for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-          const d = 4 * (x + y * width); // destination pixel
-          const s = 4 * (Math.floor(x / zoom) + Math.floor(y / zoom) * width); // source
-          imageData.data[d + 0] = color[s + 0];
-          imageData.data[d + 1] = color[s + 1];
-          imageData.data[d + 2] = color[s + 2];
-          imageData.data[d + 3] = color[s + 3];
+      if (minimap) {
+        const zoom = 8; // Zoom factor for minimap
+        const {width, height} = canvas;
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            const d = 4 * (x + y * width); // destination pixel
+            const s = 4 * (Math.floor(x / zoom) + Math.floor(y / zoom) * width); // source
+            imageData.data[d + 0] = color[s + 0];
+            imageData.data[d + 1] = color[s + 1];
+            imageData.data[d + 2] = color[s + 2];
+            imageData.data[d + 3] = color[s + 3];
+          }
         }
       }
 
       // Full map
-      const offset = color.length;
+      const offset = minimap ? color.length : 0;
       for (let i = 0; i < color.length; i += 4) {
         imageData.data[offset + i + 0] = color[i + 0];
         imageData.data[offset + i + 1] = color[i + 1];
