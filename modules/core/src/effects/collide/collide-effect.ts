@@ -12,9 +12,7 @@ import type Viewport from '../../viewports/viewport';
 import type {MaskBounds} from './utils';
 import type {CoordinateSystem} from '../../lib/constants';
 
-type Mask = {
-  /** The channel index */
-  index: number;
+type Collide = {
   bounds: MaskBounds;
   coordinateOrigin: [number, number, number];
   coordinateSystem: CoordinateSystem;
@@ -22,24 +20,22 @@ type Mask = {
 
 type Channel = {
   id: string;
-  index: number;
   layers: Layer[];
-  bounds: MaskBounds;
-  maskBounds: MaskBounds;
-  layerBounds: MaskBounds[];
+  bounds?: MaskBounds;
+  maskBounds?: MaskBounds;
+  layerBounds: ([number[], number[]] | null)[];
   coordinateOrigin: [number, number, number];
   coordinateSystem: CoordinateSystem;
 };
 
-// Class to manage mask effect
-export default class MaskEffect implements Effect {
-  id = 'mask-effect';
+// Class to manage collide effect
+export default class CollideEffect implements Effect {
+  id = 'collide-effect';
   props = null;
   useInPicking = true;
 
-  private dummyMaskMap?: Texture2D;
-  private channels: (Channel | null)[] = [];
-  private masks: Record<string, Mask> | null = null;
+  private dummyCollideMap?: Texture2D;
+  private collide: Collide | null = null;
   private collidePass?: CollidePass;
   private collideMap?: Texture2D;
   private lastViewport?: Viewport;
@@ -48,8 +44,8 @@ export default class MaskEffect implements Effect {
     gl: WebGLRenderingContext,
     {layers, layerFilter, viewports, onViewportActive, views}: PreRenderOptions
   ): void {
-    if (!this.dummyMaskMap) {
-      this.dummyMaskMap = new Texture2D(gl, {
+    if (!this.dummyCollideMap) {
+      this.dummyCollideMap = new Texture2D(gl, {
         width: 1,
         height: 1
       });
@@ -59,11 +55,9 @@ export default class MaskEffect implements Effect {
       l => l.props.visible && l.props.operation === OPERATION.COLLIDE
     );
     if (maskLayers.length === 0) {
-      this.masks = null;
-      this.channels.length = 0;
+      this.collide = null;
       return;
     }
-    this.masks = {};
 
     if (!this.collidePass) {
       this.collidePass = new CollidePass(gl, {id: 'default-mask'});
@@ -71,20 +65,26 @@ export default class MaskEffect implements Effect {
     }
 
     // Map layers to channels
-    const channelMap = this._sortMaskChannels(maskLayers);
+    const rootLayer = maskLayers[0].root;
+    const channel = {
+      id: 'collision-mask',
+      coordinateOrigin: rootLayer.props.coordinateOrigin,
+      coordinateSystem: rootLayer.props.coordinateSystem,
+      layerBounds: maskLayers.map(l => l.getBounds()),
+      layers: maskLayers
+    };
+
     // TODO - support multiple views
     const viewport = viewports[0];
     const viewportChanged = !this.lastViewport || !this.lastViewport.equals(viewport);
 
-    for (const maskId in channelMap) {
-      this._renderChannel(channelMap[maskId], {
-        layerFilter,
-        onViewportActive,
-        views,
-        viewport,
-        viewportChanged
-      });
-    }
+    this._renderChannel(channel, {
+      layerFilter,
+      onViewportActive,
+      views,
+      viewport,
+      viewportChanged
+    });
 
     // Debug show FBO contents on screen
     if (true) {
@@ -153,132 +153,66 @@ export default class MaskEffect implements Effect {
       viewportChanged: boolean;
     }
   ) {
-    const oldChannelInfo = this.channels[channelInfo.index];
-    if (!oldChannelInfo) {
-      return;
-    }
+    // For now always rerender
+    const maskChanged = true;
 
-    const maskChanged =
-      // If a channel is new
-      channelInfo === oldChannelInfo ||
-      // If sublayers have changed
-      oldChannelInfo.layers.length !== channelInfo.layers.length ||
-      // If a sublayer's positions have been updated, the cached bounds will change shallowly
-      channelInfo.layerBounds.some((b, i) => b !== oldChannelInfo.layerBounds[i]);
+    // if (maskChanged || viewportChanged) {
+    // Recalculate mask bounds
+    this.lastViewport = viewport;
 
-    channelInfo.bounds = oldChannelInfo.bounds;
-    channelInfo.maskBounds = oldChannelInfo.maskBounds;
-    this.channels[channelInfo.index] = channelInfo;
+    channelInfo.bounds = getMaskBounds({layers: channelInfo.layers, viewport});
 
-    if (maskChanged || viewportChanged) {
-      // Recalculate mask bounds
-      this.lastViewport = viewport;
+    if (maskChanged) {
+      // Rerender mask FBO
+      const {collidePass, collideMap} = this;
 
-      channelInfo.bounds = getMaskBounds({layers: channelInfo.layers, viewport});
+      const maskViewport = getMaskViewport({
+        bounds: channelInfo.bounds,
+        viewport,
+        width: collideMap.width,
+        height: collideMap.height
+      });
 
-      if (maskChanged || !equals(channelInfo.bounds, oldChannelInfo.bounds)) {
-        // Rerender mask FBO
-        const {collidePass, collideMap} = this;
+      channelInfo.maskBounds = maskViewport ? maskViewport.getBounds() : [0, 0, 1, 1];
 
-        const maskViewport = getMaskViewport({
-          bounds: channelInfo.bounds,
-          viewport,
-          width: collideMap.width,
-          height: collideMap.height
-        });
-
-        channelInfo.maskBounds = maskViewport ? maskViewport.getBounds() : [0, 0, 1, 1];
-
-        // @ts-ignore (2532) This method is only called from preRender where collidePass is defined
-        collidePass.render({
-          pass: 'mask',
-          layers: channelInfo.layers,
-          layerFilter,
-          viewports: maskViewport ? [maskViewport] : [],
-          onViewportActive,
-          views,
-          moduleParameters: {
-            devicePixelRatio: 1
-          }
-        });
-      }
-    }
-
-    // @ts-ignore (2532) This method is only called from preRender where masks is defined
-    this.masks[channelInfo.id] = {
-      index: channelInfo.index,
-      bounds: channelInfo.maskBounds,
-      coordinateOrigin: channelInfo.coordinateOrigin,
-      coordinateSystem: channelInfo.coordinateSystem
-    };
-  }
-
-  /**
-   * Find a channel to render each mask into
-   * If a maskId already exists, diff and update the existing channel
-   * Otherwise replace a removed mask
-   * Otherwise create a new channel
-   * Returns a map from mask layer id to channel info
-   */
-  private _sortMaskChannels(maskLayers: Layer[]): Record<string, Channel> {
-    const channelMap = {};
-    let channelCount = 0;
-    for (const layer of maskLayers) {
-      // Hack to render all layers into collision mask
-      const id = 'collision-mask'; // layer.root;
-      let channelInfo = channelMap[id];
-      if (!channelInfo) {
-        if (++channelCount > 4) {
-          log.warn('Too many mask layers. The max supported is 4')();
-          continue; // eslint-disable-line no-continue
+      // @ts-ignore (2532) This method is only called from preRender where collidePass is defined
+      collidePass.render({
+        pass: 'collide',
+        layers: channelInfo.layers,
+        layerFilter,
+        viewports: maskViewport ? [maskViewport] : [],
+        onViewportActive,
+        views,
+        moduleParameters: {
+          devicePixelRatio: 1
         }
-        channelInfo = {
-          id,
-          index: this.channels.findIndex(c => c?.id === id),
-          layers: [],
-          layerBounds: [],
-          coordinateOrigin: layer.root.props.coordinateOrigin,
-          coordinateSystem: layer.root.props.coordinateSystem
-        };
-        channelMap[id] = channelInfo;
-      }
-      channelInfo.layers.push(layer);
-      channelInfo.layerBounds.push(layer.getBounds());
+      });
     }
+    //}
 
-    for (let i = 0; i < 4; i++) {
-      const channelInfo = this.channels[i];
-      if (!channelInfo || !(channelInfo.id in channelMap)) {
-        // The mask id at this channel no longer exists
-        this.channels[i] = null;
-      }
+    if (channelInfo.maskBounds) {
+      this.collide = {
+        bounds: channelInfo.maskBounds,
+        coordinateOrigin: channelInfo.coordinateOrigin,
+        coordinateSystem: channelInfo.coordinateSystem
+      };
     }
-
-    for (const maskId in channelMap) {
-      const channelInfo = channelMap[maskId];
-
-      if (channelInfo.index < 0) {
-        channelInfo.index = this.channels.findIndex(c => !c);
-        this.channels[channelInfo.index] = channelInfo;
-      }
-    }
-    return channelMap;
   }
 
   getModuleParameters(): {
     collideMap: Texture2D;
-    maskChannels: Record<string, Mask> | null;
+    collide: Collide | null;
   } {
     return {
-      collideMap: this.masks ? this.collideMap : this.dummyMaskMap,
-      maskChannels: this.masks
+      collideMap: this.collide ? this.collideMap : this.dummyCollideMap,
+      collide: this.collide
     };
   }
 
   cleanup(): void {
-    if (this.dummyMaskMap) {
-      this.dummyMaskMap.delete();
-      this.dummyMaskMap = undefined;
+    if (this.dummyCollideMap) {
+      this.dummyCollideMap.delete();
+      this.dummyCollideMap = undefined;
     }
 
     if (this.collidePass) {
@@ -288,7 +222,6 @@ export default class MaskEffect implements Effect {
     }
 
     this.lastViewport = undefined;
-    this.masks = null;
-    this.channels.length = 0;
+    this.collide = null;
   }
 }

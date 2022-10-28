@@ -40,19 +40,16 @@ export default class CollidePass extends LayersPass {
     const gl = this.gl;
 
     const colorMask = [true, true, true, true];
-    // colorMask[options.channel] = true;
 
     return withParameters(
       gl,
       {
         clearColor: [0, 0, 0, 0],
         blend: false,
-        // blendFunc: [gl.ZERO, gl.ONE],
-        // blendEquation: gl.FUNC_SUBTRACT,
         colorMask,
-        depthTest: false // TODO Perhaps true to allow correct sorting between layers
+        depthTest: false // TODO Perhaps true to allow correct sorting between layers (NEED DEPTH_ATTACHMENT!)
       },
-      () => super.render({...options, target: this.fbo, pass: 'mask'})
+      () => super.render({...options, target: this.fbo, pass: 'collide'})
     );
   }
 

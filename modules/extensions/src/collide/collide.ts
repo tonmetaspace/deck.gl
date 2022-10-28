@@ -43,11 +43,11 @@ export default class CollideExtension extends LayerExtension {
   draw(this: Layer<CollideExtensionProps>, {uniforms, context, moduleParameters}: any) {
     uniforms.mask_maskByInstance = this.state.maskByInstance;
     const {maskId = ''} = this.props;
-    const {maskChannels} = moduleParameters;
+    const {collide} = moduleParameters;
     const {viewport} = context;
-    if (maskChannels && maskChannels[maskId]) {
-      const {index, bounds, coordinateOrigin: fromCoordinateOrigin} = maskChannels[maskId];
-      let {coordinateSystem: fromCoordinateSystem} = maskChannels[maskId];
+    if (collide) {
+      const {index, bounds, coordinateOrigin: fromCoordinateOrigin} = collide;
+      let {coordinateSystem: fromCoordinateSystem} = collide;
       uniforms.mask_enabled = true;
       uniforms.mask_channel = index;
 
