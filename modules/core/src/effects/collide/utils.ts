@@ -22,7 +22,7 @@ export function getMaskBounds({
 }): MaskBounds {
   // HACK always render whole viewport
   const b = viewport.getBounds();
-  //  return b;
+  return b;
 
   // Try snapping - doesn't look great
   const res = 0.05;
@@ -36,56 +36,6 @@ export function getMaskBounds({
   b[3] = Math.round(b[3] / w) * w;
 
   return b;
-
-  // Join the bounds of layer data
-  let bounds: MaskBounds | null = null;
-  for (const layer of layers) {
-    const subLayerBounds = layer.getBounds();
-    if (subLayerBounds) {
-      if (bounds) {
-        bounds[0] = Math.min(bounds[0], subLayerBounds[0][0]);
-        bounds[1] = Math.min(bounds[1], subLayerBounds[0][1]);
-        bounds[2] = Math.max(bounds[2], subLayerBounds[1][0]);
-        bounds[3] = Math.max(bounds[3], subLayerBounds[1][1]);
-      } else {
-        bounds = [
-          subLayerBounds[0][0],
-          subLayerBounds[0][1],
-          subLayerBounds[1][0],
-          subLayerBounds[1][1]
-        ];
-      }
-    }
-  }
-  const viewportBounds = viewport.getBounds();
-  if (!bounds) {
-    return viewportBounds;
-  }
-
-  // Expand viewport bounds by 2X. Heurestically chosen to avoid masking
-  // errors when mask is partially out of view
-  const paddedBounds = _doubleBounds(viewportBounds);
-
-  // When bounds of the mask are smaller than the viewport bounds simply use
-  // mask bounds, so as to maximize resolution & avoid mask rerenders
-  if (
-    bounds[2] - bounds[0] < paddedBounds[2] - paddedBounds[0] ||
-    bounds[3] - bounds[1] < paddedBounds[3] - paddedBounds[1]
-  ) {
-    return bounds;
-  }
-
-  // As viewport shrinks, to avoid pixelation along mask edges
-  // we need to reduce the bounds and only render the visible portion
-  // of the mask.
-  // We pad the viewport bounds to capture the section
-  // of the mask just outside the viewport to correctly maskByInstance.
-  // Intersect mask & padded viewport bounds
-  bounds[0] = Math.max(bounds[0], paddedBounds[0]);
-  bounds[1] = Math.max(bounds[1], paddedBounds[1]);
-  bounds[2] = Math.min(bounds[2], paddedBounds[2]);
-  bounds[3] = Math.min(bounds[3], paddedBounds[3]);
-  return bounds;
 }
 
 /*
