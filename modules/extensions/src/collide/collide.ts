@@ -34,7 +34,6 @@ export default class CollideExtension extends LayerExtension {
       const {index, bounds, coordinateOrigin: fromCoordinateOrigin} = collide;
       let {coordinateSystem: fromCoordinateSystem} = collide;
       uniforms.collide_enabled = true;
-      uniforms.mask_channel = index;
 
       if (fromCoordinateSystem === COORDINATE_SYSTEM.DEFAULT) {
         fromCoordinateSystem = viewport.isGeospatial

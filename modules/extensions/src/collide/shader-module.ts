@@ -4,24 +4,23 @@ import type {Texture2D} from '@luma.gl/webgl';
 
 const vs = `
 uniform vec4 collide_bounds;
-vec2 mask_getCoords(vec4 position) {
+vec2 collide_getCoords(vec4 position) {
   return (position.xy - collide_bounds.xy) / (collide_bounds.zw - collide_bounds.xy);
 }
 `;
 
 const fs = `
 uniform sampler2D collide_texture;
-uniform int mask_channel;
 uniform bool collide_enabled;
 
 float match(vec2 tex, vec3 pickingColor) {
-  vec4 maskColor = texture2D(collide_texture, tex);
-  float delta = distance(maskColor.rgb, pickingColor);
+  vec4 collide_pickingColor = texture2D(collide_texture, tex);
+  float delta = distance(collide_pickingColor.rgb, pickingColor);
   float e = 0.000001;
   return step(delta, e);
 }
 
-float mask_isInBounds(vec2 texCoords, vec3 pickingColor) {
+float collide_isInBounds(vec2 texCoords, vec3 pickingColor) {
   if (!collide_enabled) {
     return 1.0;
   }
@@ -29,8 +28,8 @@ float mask_isInBounds(vec2 texCoords, vec3 pickingColor) {
   float O = 0.0;
   vec2 dx = 2.0 * vec2(1.0 / 2048.0, 0.0);
   vec2 dy = dx.yx;
-  // Visibility test
 
+  // Visibility test
   vec2 dd = -2.0 * dy;
   O += match(texCoords + 2.0 * dx + dd, pickingColor);
   O += match(texCoords + dx + dd , pickingColor);
@@ -69,45 +68,32 @@ float mask_isInBounds(vec2 texCoords, vec3 pickingColor) {
   O = O / 25.0;
 
   return pow(O, 2.2);
-
-
-  // float maskValue = 1.0;
-  // if (mask_channel == 0) {
-  //   maskValue = maskColor.r;
-  // } else if (mask_channel == 1) {
-  //   maskValue = maskColor.g;
-  // } else if (mask_channel == 2) {
-  //   maskValue = maskColor.b;
-  // } else if (mask_channel == 3) {
-  //   maskValue = maskColor.a;
-  // }
-  // return maskValue < 0.5;
 }
 `;
 
 const inject = {
   'vs:#decl': `
-varying vec2 mask_texCoords;
+varying vec2 collide_texCoords;
 `,
   'vs:#main-end': `
-   vec4 mask_common_position = project_position(vec4(geometry.worldPosition, 1.0));
-   mask_texCoords = mask_getCoords(mask_common_position);
+   vec4 collide_common_position = project_position(vec4(geometry.worldPosition, 1.0));
+   collide_texCoords = collide_getCoords(collide_common_position);
 `,
   'fs:#decl': `
-varying vec2 mask_texCoords;
+varying vec2 collide_texCoords;
 `,
   'fs:#main-end': `
   if (collide_enabled) {
-    float mask = mask_isInBounds(mask_texCoords, vPickingColor);
+    float collide_visible = collide_isInBounds(collide_texCoords, vPickingColor);
 
     // Debug: show extent of render target
-    // gl_FragColor = vec4(mask_texCoords, 0.0, 1.0);
-    // gl_FragColor = texture2D(collide_texture, mask_texCoords);
+    // gl_FragColor = vec4(collide_texCoords, 0.0, 1.0);
+    // gl_FragColor = texture2D(collide_texture, collide_texCoords);
 
-    // Fade out mask
-    gl_FragColor.a *= mask;
+    // Fade out
+    gl_FragColor.a *= collide_visible;
 
-    if (mask < 0.01) discard;
+    if (collide_visible < 0.01) discard;
   }
 `
 };
