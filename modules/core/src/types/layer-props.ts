@@ -1,4 +1,4 @@
-import type {CoordinateSystem} from '../lib/constants';
+import type {CoordinateSystem, OPERATION} from '../lib/constants';
 import type Layer from '../lib/layer';
 import type {BinaryAttribute} from '../lib/attribute/attribute';
 import type {ConstructorOf, NumericArray, TypedArray} from './types';
@@ -8,6 +8,8 @@ import type {MjolnirEvent} from 'mjolnir.js';
 import type {Buffer, Texture2D, Texture2DProps} from '@luma.gl/webgl';
 import type {Loader} from '@loaders.gl/loader-utils';
 import type {LightingModuleSettings} from '../shaderlib';
+
+type ValuesOf<T extends {}> = T[keyof T];
 
 export type LayerData<T> =
   | Iterable<T>
@@ -124,7 +126,7 @@ export type LayerProps<DataType = any> = {
   /**
    * The purpose of the layer
    */
-  operation?: 'draw' | 'mask';
+  operation?: ValuesOf<typeof OPERATION>;
   /**
    * If the layer should be rendered. Default true.
    */

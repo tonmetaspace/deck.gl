@@ -5,7 +5,7 @@ import {StaticMap} from 'react-map-gl';
 import DeckGL from '@deck.gl/react';
 import {COORDINATE_SYSTEM, OPERATION} from '@deck.gl/core';
 import {GeoJsonLayer, ScatterplotLayer, SolidPolygonLayer} from '@deck.gl/layers';
-import {MaskExtension} from '@deck.gl/extensions';
+import {CollideExtension} from '@deck.gl/extensions';
 
 const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/voyager-nolabels-gl-style/style.json';
 const AIR_PORTS =
@@ -54,16 +54,16 @@ export default function App() {
 
   const points = [
     new GeoJsonLayer({
-      id: 'mask-points', // Hacked to 'collision-mask' in MaskEffect
-      operation: OPERATION.MASK,
+      id: 'collide-points', // Hacked to 'collision-mask' in MaskEffect
+      operation: OPERATION.COLLIDE,
       pointAntialiasing: false,
       ...pointsProps,
       getPointRadius: 4 * pointsProps.getPointRadius // Enlarge point to increase hit area
     }),
     new GeoJsonLayer({
       id: 'points',
-      extensions: [new MaskExtension()],
-      maskId: maskEnabled && 'collision-mask',
+      extensions: [new CollideExtension()],
+      maskId: maskEnabled && 'collision-mask', // TODO should introduce `collide` prop
       ...pointsProps
     })
   ];
@@ -78,15 +78,15 @@ export default function App() {
 
   const labels = [
     new GeoJsonLayer({
-      id: 'mask-labels', // Hacked to 'collision-mask' in MaskEffect
-      operation: OPERATION.MASK,
+      id: 'collide-labels', // Hacked to 'collision-mask' in MaskEffect
+      operation: OPERATION.COLLIDE,
       textBackground: true, // Only draw box for mask
       ...labelsProps,
       getTextSize: 4 * labelsProps.getTextSize // Enlarge point to increase hit area
     }),
     new GeoJsonLayer({
       id: 'labels',
-      extensions: [new MaskExtension()],
+      extensions: [new CollideExtension()],
       maskId: maskEnabled && 'collision-mask',
       ...labelsProps
     })

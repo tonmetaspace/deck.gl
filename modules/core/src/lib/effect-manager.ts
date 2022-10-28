@@ -1,5 +1,6 @@
 import {deepEqual} from '../utils/deep-equal';
 import LightingEffect from '../effects/lighting/lighting-effect';
+import CollideEffect from '../effects/collide/collide-effect';
 import MaskEffect from '../effects/mask/mask-effect';
 import type {Effect} from './effect';
 
@@ -48,7 +49,8 @@ export default class EffectManager {
     this.effects = effects;
 
     this._internalEffects = effects.slice();
-    // Unique MaskEffect per EffectManager as GL context may be different
+    // Unique CollideEffect & MaskEffect per EffectManager as GL context may be different
+    this._internalEffects.push(new CollideEffect());
     this._internalEffects.push(new MaskEffect());
     if (!effects.some(effect => effect instanceof LightingEffect)) {
       this._internalEffects.push(DEFAULT_LIGHTING_EFFECT);

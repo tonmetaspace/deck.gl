@@ -111,6 +111,7 @@ export const EVENTS = {
  * The rendering operation to perform with a layer, used in the `operation` prop
  */
 export const OPERATION = {
+  COLLIDE: 'collide',
   DRAW: 'draw',
   MASK: 'mask'
 } as const;
