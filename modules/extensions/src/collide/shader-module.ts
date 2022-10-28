@@ -5,9 +5,7 @@ import type {Texture2D} from '@luma.gl/webgl';
 const vs = `
 vec2 collide_getCoords(vec4 position) {
   vec4 collide_clipspace = project_common_position_to_clipspace(position);
-
-  // Why the 0.75??
-  return (0.5 * collide_clipspace.xy + vec2(0.75)) / collide_clipspace.w;
+  return (1.0 + collide_clipspace.xy / collide_clipspace.w) / 2.0;
 }
 `;
 
@@ -90,14 +88,13 @@ varying vec2 collide_texCoords;
 
     // Debug: show extent of render target
     // gl_FragColor = vec4(collide_texCoords, 0.0, 1.0);
-    // if (collide_texCoords.x > 1.0 || collide_texCoords.x < 0.0) {
+    // if (collide_texCoords.x > 0.99 || collide_texCoords.x < 0.01 || collide_texCoords.y > 0.99 || collide_texCoords.y < 0.01) {
     //   gl_FragColor.b = 1.0;
     // }
     // gl_FragColor = texture2D(collide_texture, collide_texCoords);
 
     // Fade out
     gl_FragColor.a *= collide_visible;
-
     if (collide_visible < 0.01) discard;
   }
 `

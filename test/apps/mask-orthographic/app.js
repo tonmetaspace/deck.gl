@@ -88,6 +88,7 @@ export default function App() {
       id: 'labels',
       extensions: [new CollideExtension()],
       collideEnabled,
+      parameters: {depthTest: false},
       ...labelsProps
     })
   ];
