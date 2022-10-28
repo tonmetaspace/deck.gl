@@ -13,7 +13,8 @@ export default class CollidePass extends LayersPass {
   constructor(gl, props: {id: string; mapSize?: number}) {
     super(gl, props);
 
-    const {mapSize = 2048} = props;
+    // HACK!!! should match actual canvas size
+    const {mapSize = 876} = props;
 
     this.collideMap = new Texture2D(gl, {
       width: mapSize,

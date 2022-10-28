@@ -57,7 +57,7 @@ export function getMaskViewport({
   }
 
   if (viewport.resolution !== undefined) {
-    log.warn('MaskExtension is not supported in GlobeView')();
+    log.warn('CollideExtension is not supported in GlobeView')();
     return null;
   }
 
@@ -67,25 +67,15 @@ export function getMaskViewport({
   height -= padding * 2;
 
   if (viewport.isGeospatial) {
-    const {longitude, latitude, zoom} = fitBounds({
-      width,
-      height,
-      bounds: [
-        [bounds[0], bounds[1]],
-        [bounds[2], bounds[3]]
-      ],
-      maxZoom: 20
-    });
     return new WebMercatorViewport({
-      longitude,
-      latitude,
-      zoom,
+      ...viewport,
       x: padding,
       y: padding,
       width,
       height
     });
   }
+  // TODO code below wrong
 
   const center = [(bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2, 0];
   const scale = Math.min(

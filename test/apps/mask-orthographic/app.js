@@ -33,7 +33,7 @@ const basemap = new GeoJsonLayer({
 export default function App() {
   const [collideEnabled, setCollideEnabled] = useState(true);
   const [showPoints, setShowPoints] = useState(true);
-  const [showLabels, setShowLabels] = useState(true);
+  const [showLabels, setShowLabels] = useState(false);
 
   const props = {
     data: PLACES,
@@ -58,7 +58,7 @@ export default function App() {
       operation: OPERATION.COLLIDE,
       pointAntialiasing: false,
       ...pointsProps,
-      getPointRadius: 4 * pointsProps.getPointRadius // Enlarge point to increase hit area
+      getPointRadius: 2 * pointsProps.getPointRadius // Enlarge point to increase hit area
     }),
     new GeoJsonLayer({
       id: 'points',
@@ -82,7 +82,7 @@ export default function App() {
       operation: OPERATION.COLLIDE,
       textBackground: true, // Only draw box for mask
       ...labelsProps,
-      getTextSize: 4 * labelsProps.getTextSize // Enlarge point to increase hit area
+      getTextSize: 2 * labelsProps.getTextSize // Enlarge point to increase hit area
     }),
     new GeoJsonLayer({
       id: 'labels',

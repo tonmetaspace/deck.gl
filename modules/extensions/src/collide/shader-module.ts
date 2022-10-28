@@ -77,7 +77,10 @@ varying vec2 collide_texCoords;
 `,
   'vs:#main-end': `
    vec4 collide_common_position = project_position(vec4(geometry.worldPosition, 1.0));
-   collide_texCoords = collide_getCoords(collide_common_position);
+   vec4 collide_clipspace = project_common_position_to_clipspace(collide_common_position);
+
+   // Why the 0.75??
+   collide_texCoords = (0.5 * collide_clipspace.xy + vec2(0.75)) / collide_clipspace.w;
 `,
   'fs:#decl': `
 varying vec2 collide_texCoords;
@@ -88,6 +91,9 @@ varying vec2 collide_texCoords;
 
     // Debug: show extent of render target
     // gl_FragColor = vec4(collide_texCoords, 0.0, 1.0);
+    // if (collide_texCoords.x > 1.0 || collide_texCoords.x < 0.0) {
+    //   gl_FragColor.b = 1.0;
+    // }
     // gl_FragColor = texture2D(collide_texture, collide_texCoords);
 
     // Fade out
