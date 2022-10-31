@@ -9,36 +9,6 @@ import type Viewport from '../../viewports/viewport';
 export type MaskBounds = [number, number, number, number];
 
 /*
- * Compute the bounds of the mask in world space, such that it covers an
- * area currently visible (extended by a buffer) or the area of the masking
- * data, whichever is smaller
- */
-export function getMaskBounds({
-  layers,
-  viewport
-}: {
-  layers: Layer[];
-  viewport: Viewport;
-}): MaskBounds {
-  // HACK always render whole viewport
-  const b = viewport.getBounds();
-  return b;
-
-  // Try snapping - doesn't look great
-  const res = 0.05;
-  let w = (b[2] - b[0]) * res;
-  let h = (b[3] - b[1]) * res;
-  w = parseFloat(w.toPrecision(3));
-
-  b[0] = Math.round(b[0] / w) * w;
-  b[2] = b[0] + w / res; // Fewer state changes when panning
-  b[1] = Math.round(b[1] / w) * w;
-  b[3] = Math.round(b[3] / w) * w;
-
-  return b;
-}
-
-/*
  * Compute viewport to render the mask into, covering the given bounds
  */
 export function getMaskViewport({
@@ -95,16 +65,4 @@ export function getMaskViewport({
       zoom: Math.log2(scale)
     }
   });
-}
-
-function _doubleBounds(bounds: MaskBounds): MaskBounds {
-  const size = {
-    x: bounds[2] - bounds[0],
-    y: bounds[3] - bounds[1]
-  };
-  const center = {
-    x: bounds[0] + 0.5 * size.x,
-    y: bounds[1] + 0.5 * size.y
-  };
-  return [center.x - size.x, center.y - size.y, center.x + size.x, center.y + size.y];
 }

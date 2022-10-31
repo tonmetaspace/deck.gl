@@ -3,7 +3,7 @@ import {readPixelsToArray} from '@luma.gl/core';
 import {equals} from '@math.gl/core';
 import CollidePass from '../../passes/collide-pass';
 import {OPERATION} from '../../lib/constants';
-import {getMaskBounds, getMaskViewport} from './utils';
+import {getMaskViewport} from './utils';
 import log from '../../utils/log';
 
 import type {Effect, PreRenderOptions} from '../../lib/effect';
@@ -180,7 +180,7 @@ export default class CollideEffect implements Effect {
       // Recalculate mask bounds
       this.lastViewport = viewport;
 
-      channelInfo.bounds = getMaskBounds({layers: channelInfo.layers, viewport});
+      channelInfo.bounds = viewport.getBounds();
 
       // Rerender mask FBO
       const {collidePass, collideMap} = this;
