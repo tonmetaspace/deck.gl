@@ -47,7 +47,6 @@ uniform int lineWidthUnits;
 
 varying vec4 vFillColor;
 varying vec4 vLineColor;
-varying vec3 vPickingColor;
 varying vec2 unitPosition;
 varying float innerUnitRadius;
 varying float outerRadiusPixels;
@@ -99,6 +98,5 @@ void main(void) {
   DECKGL_FILTER_COLOR(vFillColor, geometry);
   vLineColor = vec4(instanceLineColors.rgb, instanceLineColors.a * opacity);
   DECKGL_FILTER_COLOR(vLineColor, geometry);
-  vPickingColor = instancePickingColors / 255.0;
 }
 `;

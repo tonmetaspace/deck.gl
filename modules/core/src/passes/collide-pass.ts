@@ -58,6 +58,11 @@ export default class CollidePass extends LayersPass {
     return layer.props.operation === OPERATION.COLLIDE;
   }
 
+  getModuleParameters() {
+    // Draw picking colors into collide FBO
+    return {pickingActive: 1, pickingAttribute: false, lightSources: {}};
+  }
+
   delete() {
     this.fbo.delete();
     this.collideMap.delete();

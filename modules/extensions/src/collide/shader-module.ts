@@ -74,17 +74,20 @@ float collide_isInBounds(vec2 texCoords, vec3 pickingColor) {
 const inject = {
   'vs:#decl': `
 varying vec2 collide_texCoords;
+varying vec3 collide_pickingColor;
 `,
   'vs:#main-end': `
    vec4 collide_common_position = project_position(vec4(geometry.worldPosition, 1.0));
    collide_texCoords = collide_getCoords(collide_common_position);
+   collide_pickingColor = geometry.pickingColor / 255.0;
 `,
   'fs:#decl': `
 varying vec2 collide_texCoords;
+varying vec3 collide_pickingColor;
 `,
   'fs:#main-end': `
   if (collide_enabled) {
-    float collide_visible = collide_isInBounds(collide_texCoords, vPickingColor);
+    float collide_visible = collide_isInBounds(collide_texCoords, collide_pickingColor);
 
     // Debug: show extent of render target
     // gl_FragColor = vec4(collide_texCoords, 0.0, 1.0);

@@ -29,7 +29,6 @@ uniform bool antialiasing;
 
 varying vec4 vFillColor;
 varying vec4 vLineColor;
-varying vec3 vPickingColor;
 varying vec2 unitPosition;
 varying float innerUnitRadius;
 varying float outerRadiusPixels;
@@ -67,6 +66,5 @@ void main(void) {
 
   gl_FragColor.a *= inCircle;
   DECKGL_FILTER_COLOR(gl_FragColor, geometry);
-  gl_FragColor.rgb = vPickingColor;
 }
 `;
