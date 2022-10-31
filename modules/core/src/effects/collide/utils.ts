@@ -9,9 +9,9 @@ import type Viewport from '../../viewports/viewport';
 export type MaskBounds = [number, number, number, number];
 
 /*
- * Compute viewport to render the mask into, covering the given bounds
+ * Compute viewport to render the collisions into, covering the given bounds
  */
-export function getMaskViewport({
+export function getCollideViewport({
   bounds,
   viewport,
   width,

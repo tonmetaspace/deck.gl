@@ -3,7 +3,7 @@ import {readPixelsToArray} from '@luma.gl/core';
 import {equals} from '@math.gl/core';
 import CollidePass from '../../passes/collide-pass';
 import {OPERATION} from '../../lib/constants';
-import {getMaskViewport} from './utils';
+import {getCollideViewport} from './utils';
 import log from '../../utils/log';
 
 import type {Effect, PreRenderOptions} from '../../lib/effect';
@@ -83,6 +83,10 @@ export default class CollideEffect implements Effect {
     const viewport = viewports[0];
     const viewportChanged = !this.lastViewport || !this.lastViewport.equals(viewport);
 
+    // Resize framebuffer to match canvas
+    // TODO 2X multiplier incorrect?
+    this.collidePass.fbo.resize({width: 0.5 * gl.canvas.width, height: 0.5 * gl.canvas.height});
+
     this._renderChannel(channel, {
       layerFilter,
       onViewportActive,
@@ -96,19 +100,22 @@ export default class CollideEffect implements Effect {
       const color = readPixelsToArray(this.collideMap);
       let canvas = document.getElementById('fbo-canvas') as HTMLCanvasElement;
       const minimap = false;
+      const canvasHeight = (minimap ? 2 : 1) * this.collideMap.height;
       if (!canvas) {
         canvas = document.createElement('canvas') as HTMLCanvasElement;
         canvas.id = 'fbo-canvas';
-        canvas.width = this.collideMap.width;
-        canvas.height = (minimap ? 2 : 1) * this.collideMap.height;
         canvas.style.zIndex = '100';
         canvas.style.position = 'absolute';
         canvas.style.top = '0';
         canvas.style.right = '0';
         canvas.style.border = 'blue 1px solid';
-        canvas.style.width = '256px';
         canvas.style.transform = 'scaleY(-1)';
         document.body.appendChild(canvas);
+      }
+      if (canvas.width !== this.collideMap.width || canvas.height !== canvasHeight) {
+        canvas.width = this.collideMap.width;
+        canvas.height = canvasHeight;
+        canvas.style.width = `${0.25 * canvas.width}px`; // Fit with 80% width #app
       }
       const ctx = canvas.getContext('2d')!;
       const imageData = ctx.createImageData(canvas.width, canvas.height);
@@ -185,7 +192,7 @@ export default class CollideEffect implements Effect {
       // Rerender mask FBO
       const {collidePass, collideMap} = this;
 
-      const maskViewport = getMaskViewport({
+      const maskViewport = getCollideViewport({
         bounds: channelInfo.bounds,
         viewport,
         width: collideMap.width,

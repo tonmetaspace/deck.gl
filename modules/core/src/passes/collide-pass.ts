@@ -10,15 +10,14 @@ export default class CollidePass extends LayersPass {
   collideMap: Texture2D;
   fbo: Framebuffer;
 
-  constructor(gl, props: {id: string; mapSize?: number}) {
+  constructor(gl, props: {id: string}) {
     super(gl, props);
 
-    // HACK!!! should match actual canvas size
-    const {mapSize = 876} = props;
+    const {width, height} = gl.canvas;
 
     this.collideMap = new Texture2D(gl, {
-      width: mapSize,
-      height: mapSize,
+      width,
+      height,
       parameters: {
         [gl.TEXTURE_MIN_FILTER]: gl.LINEAR,
         [gl.TEXTURE_MAG_FILTER]: gl.LINEAR,
@@ -29,8 +28,8 @@ export default class CollidePass extends LayersPass {
 
     this.fbo = new Framebuffer(gl, {
       id: 'collidemap',
-      width: mapSize,
-      height: mapSize,
+      width,
+      height,
       attachments: {
         [gl.COLOR_ATTACHMENT0]: this.collideMap
       }
