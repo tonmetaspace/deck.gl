@@ -43,7 +43,6 @@ uniform int sizeUnits;
 
 varying float vColorMode;
 varying vec4 vColor;
-varying vec3 vPickingColor;
 varying vec2 vTextureCoords;
 varying vec2 uv;
 
@@ -100,7 +99,6 @@ void main(void) {
 
   vColor = instanceColors;
   DECKGL_FILTER_COLOR(vColor, geometry);
-  vPickingColor = instancePickingColors / 255.0;
 
   vColorMode = instanceColorModes;
 }
