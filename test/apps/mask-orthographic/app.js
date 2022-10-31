@@ -80,7 +80,6 @@ export default function App() {
     new GeoJsonLayer({
       id: 'collide-labels', // Hacked to 'collision-mask' in MaskEffect
       operation: OPERATION.COLLIDE,
-      textBackground: true, // Only draw box for mask
       ...labelsProps,
       getTextSize: 2 * labelsProps.getTextSize // Enlarge point to increase hit area
     }),
