@@ -3,26 +3,16 @@ import {readPixelsToArray} from '@luma.gl/core';
 import {equals} from '@math.gl/core';
 import CollidePass from '../../passes/collide-pass';
 import {OPERATION} from '../../lib/constants';
-import {getCollideViewport} from './utils';
 import log from '../../utils/log';
 
 import type {Effect, PreRenderOptions} from '../../lib/effect';
 import type Layer from '../../lib/layer';
 import type Viewport from '../../viewports/viewport';
-import type {MaskBounds} from './utils';
 import type {CoordinateSystem} from '../../lib/constants';
-
-type Collide = {
-  bounds: MaskBounds;
-  coordinateOrigin: [number, number, number];
-  coordinateSystem: CoordinateSystem;
-};
 
 type Channel = {
   id: string;
   layers: Layer[];
-  bounds?: MaskBounds;
-  maskBounds?: MaskBounds;
   layerBounds: ([number[], number[]] | null)[];
   coordinateOrigin: [number, number, number];
   coordinateSystem: CoordinateSystem;
@@ -36,7 +26,7 @@ export default class CollideEffect implements Effect {
 
   private dummyCollideMap?: Texture2D;
   private oldChannelInfo: Channel | null = null;
-  private collide: Collide | null = null;
+  private haveCollideLayers: Boolean = false;
   private collidePass?: CollidePass;
   private collideMap?: Texture2D;
   private lastViewport?: Viewport;
@@ -56,10 +46,11 @@ export default class CollideEffect implements Effect {
       l => l.props.visible && l.props.operation === OPERATION.COLLIDE
     );
     if (maskLayers.length === 0) {
-      this.collide = null;
+      this.haveCollideLayers = false;
       this.oldChannelInfo = null;
       return;
     }
+    this.haveCollideLayers = true;
 
     if (!this.collidePass) {
       this.collidePass = new CollidePass(gl, {id: 'default-mask'});
@@ -99,7 +90,7 @@ export default class CollideEffect implements Effect {
     if (true) {
       const color = readPixelsToArray(this.collideMap);
       let canvas = document.getElementById('fbo-canvas') as HTMLCanvasElement;
-      const minimap = false;
+      const minimap = true;
       const canvasHeight = (minimap ? 2 : 1) * this.collideMap.height;
       if (!canvas) {
         canvas = document.createElement('canvas') as HTMLCanvasElement;
@@ -178,8 +169,6 @@ export default class CollideEffect implements Effect {
       // If a sublayer's positions have been updated, the cached bounds will change shallowly
       channelInfo.layerBounds.some((b, i) => b !== oldChannelInfo.layerBounds[i]);
 
-    channelInfo.bounds = oldChannelInfo.bounds;
-    channelInfo.maskBounds = oldChannelInfo.maskBounds;
     this.oldChannelInfo = channelInfo;
 
     // console.log('maskChanged', maskChanged, 'viewportChanged', viewportChanged);
@@ -187,26 +176,15 @@ export default class CollideEffect implements Effect {
       // Recalculate mask bounds
       this.lastViewport = viewport;
 
-      channelInfo.bounds = viewport.getBounds();
-
       // Rerender mask FBO
       const {collidePass, collideMap} = this;
-
-      const maskViewport = getCollideViewport({
-        bounds: channelInfo.bounds,
-        viewport,
-        width: collideMap.width,
-        height: collideMap.height
-      });
-
-      channelInfo.maskBounds = maskViewport ? maskViewport.getBounds() : [0, 0, 1, 1];
 
       // @ts-ignore (2532) This method is only called from preRender where collidePass is defined
       collidePass.render({
         pass: 'collide',
         layers: channelInfo.layers,
         layerFilter,
-        viewports: maskViewport ? [maskViewport] : [],
+        viewports: viewport ? [viewport] : [],
         onViewportActive,
         views,
         moduleParameters: {
@@ -214,23 +192,12 @@ export default class CollideEffect implements Effect {
         }
       });
     }
-
-    if (channelInfo.maskBounds) {
-      this.collide = {
-        bounds: channelInfo.maskBounds,
-        coordinateOrigin: channelInfo.coordinateOrigin,
-        coordinateSystem: channelInfo.coordinateSystem
-      };
-    }
   }
 
-  getModuleParameters(): {
-    collideMap: Texture2D;
-    collide: Collide | null;
-  } {
+  getModuleParameters(): {collideMap: Texture2D; haveCollideLayers: Boolean} {
     return {
-      collideMap: this.collide ? this.collideMap : this.dummyCollideMap,
-      collide: this.collide
+      collideMap: this.haveCollideLayers ? this.collideMap : this.dummyCollideMap,
+      haveCollideLayers: this.haveCollideLayers
     };
   }
 
@@ -247,7 +214,7 @@ export default class CollideEffect implements Effect {
     }
 
     this.lastViewport = undefined;
-    this.collide = null;
+    this.haveCollideLayers = false;
     this.oldChannelInfo = null;
   }
 }

@@ -28,19 +28,9 @@ export default class CollideExtension extends LayerExtension {
   /* eslint-disable camelcase */
   draw(this: Layer<CollideExtensionProps>, {uniforms, context, moduleParameters}: any) {
     const {collideEnabled = true} = this.props;
-    const {collide} = moduleParameters;
-    const {viewport} = context;
-    if (collide && collideEnabled) {
-      const {index, coordinateOrigin: fromCoordinateOrigin} = collide;
-      let {coordinateSystem: fromCoordinateSystem} = collide;
+    const {haveCollideLayers} = moduleParameters;
+    if (haveCollideLayers && collideEnabled) {
       uniforms.collide_enabled = true;
-
-      if (fromCoordinateSystem === COORDINATE_SYSTEM.DEFAULT) {
-        fromCoordinateSystem = viewport.isGeospatial
-          ? COORDINATE_SYSTEM.LNGLAT
-          : COORDINATE_SYSTEM.CARTESIAN;
-      }
-      const opts = {modelMatrix: null, fromCoordinateOrigin, fromCoordinateSystem};
     } else {
       uniforms.collide_enabled = false;
     }
