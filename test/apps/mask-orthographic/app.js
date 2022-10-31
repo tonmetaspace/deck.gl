@@ -39,7 +39,7 @@ export default function App() {
     data: PLACES,
     pointRadiusUnits: 'pixels',
     getPointRadius: 8,
-    getFillColor: [0, 255, 0],
+    getFillColor: d => [25 * d.properties.scalerank, 255 - 25 * d.properties.scalerank, 123],
     pickable: true, // Needed to send through pickingColor
     onClick: ({object}) => console.log(object.properties)
   };
@@ -102,14 +102,15 @@ export default function App() {
     bearing: 0
   };
 
-  //<StaticMap reuseMaps mapStyle={MAP_STYLE} preventStyleDiffing={true} />
   return (
     <>
       <DeckGL
-        layers={[basemap].concat(showPoints ? points : []).concat(showLabels ? labels : [])}
+        layers={[].concat(showPoints ? points : []).concat(showLabels ? labels : [])}
         initialViewState={viewState}
         controller={true}
-      ></DeckGL>
+      >
+        <StaticMap reuseMaps mapStyle={MAP_STYLE} preventStyleDiffing={true} />
+      </DeckGL>
       <div style={{left: 200, position: 'absolute', background: 'white', padding: 10}}>
         <label>
           <input
