@@ -19,8 +19,8 @@ export default class CollidePass extends LayersPass {
       width,
       height,
       parameters: {
-        [gl.TEXTURE_MIN_FILTER]: gl.LINEAR,
-        [gl.TEXTURE_MAG_FILTER]: gl.LINEAR,
+        [gl.TEXTURE_MIN_FILTER]: gl.NEAREST,
+        [gl.TEXTURE_MAG_FILTER]: gl.NEAREST,
         [gl.TEXTURE_WRAP_S]: gl.CLAMP_TO_EDGE,
         [gl.TEXTURE_WRAP_T]: gl.CLAMP_TO_EDGE
       }
