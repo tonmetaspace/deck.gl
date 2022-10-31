@@ -25,7 +25,6 @@ uniform int sizeUnits;
 varying vec4 vFillColor;
 varying vec4 vLineColor;
 varying float vLineWidth;
-varying vec3 vPickingColor;
 varying vec2 uv;
 varying vec2 dimensions;
 
@@ -76,6 +75,5 @@ void main(void) {
   DECKGL_FILTER_COLOR(vFillColor, geometry);
   vLineColor = vec4(instanceLineColors.rgb, instanceLineColors.a * opacity);
   DECKGL_FILTER_COLOR(vLineColor, geometry);
-  vPickingColor = instancePickingColors / 255.0;
 }
 `;
