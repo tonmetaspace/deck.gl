@@ -14,7 +14,7 @@ export type CollideExtensionProps = {
   collideEnabled?: boolean;
 };
 
-/** Allows layers to show/hide objects by a geofence. */
+/** Allows layers to hide overlapping objects. */
 export default class CollideExtension extends LayerExtension {
   static defaultProps = defaultProps;
   static extensionName = 'CollideExtension';
