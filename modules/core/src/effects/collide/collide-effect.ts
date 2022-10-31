@@ -1,4 +1,4 @@
-import {Texture2D} from '@luma.gl/core';
+import {Texture2D, cssToDeviceRatio} from '@luma.gl/core';
 import {readPixelsToArray} from '@luma.gl/core';
 import {equals} from '@math.gl/core';
 import CollidePass from '../../passes/collide-pass';
@@ -9,6 +9,9 @@ import type {Effect, PreRenderOptions} from '../../lib/effect';
 import type Layer from '../../lib/layer';
 import type Viewport from '../../viewports/viewport';
 import type {CoordinateSystem} from '../../lib/constants';
+
+// Factor by which to downscale Collide FBO relative to canvas
+const DOWNSCALE = 2;
 
 type RenderInfo = {
   layers: Layer[];
@@ -64,10 +67,12 @@ export default class CollideEffect implements Effect {
     const viewportChanged = !this.lastViewport || !this.lastViewport.equals(viewport);
 
     // Resize framebuffer to match canvas
-    // TODO 2X multiplier incorrect?
-    this.collidePass.fbo.resize({width: 0.5 * gl.canvas.width, height: 0.5 * gl.canvas.height});
+    this.collidePass.fbo.resize({
+      width: gl.canvas.width / DOWNSCALE,
+      height: gl.canvas.height / DOWNSCALE
+    });
     this._render(renderInfo, {layerFilter, onViewportActive, views, viewport, viewportChanged});
-    this._debug();
+    // this._debug();
   }
 
   private _render(
@@ -114,7 +119,7 @@ export default class CollideEffect implements Effect {
         onViewportActive,
         views,
         moduleParameters: {
-          devicePixelRatio: 1
+          devicePixelRatio: cssToDeviceRatio(this.collidePass!.gl) / DOWNSCALE
         }
       });
     }
@@ -164,7 +169,7 @@ export default class CollideEffect implements Effect {
     if (canvas.width !== this.collideMap.width || canvas.height !== canvasHeight) {
       canvas.width = this.collideMap.width;
       canvas.height = canvasHeight;
-      canvas.style.width = `${0.25 * canvas.width}px`; // Fit with 80% width #app
+      canvas.style.width = `${0.125 * DOWNSCALE * canvas.width}px`; // Fit with 80% width #app
     }
     const ctx = canvas.getContext('2d')!;
     const imageData = ctx.createImageData(canvas.width, canvas.height);
