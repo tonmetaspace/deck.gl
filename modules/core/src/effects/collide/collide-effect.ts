@@ -10,12 +10,9 @@ import type Layer from '../../lib/layer';
 import type Viewport from '../../viewports/viewport';
 import type {CoordinateSystem} from '../../lib/constants';
 
-type Channel = {
-  id: string;
+type RenderInfo = {
   layers: Layer[];
   layerBounds: ([number[], number[]] | null)[];
-  coordinateOrigin: [number, number, number];
-  coordinateSystem: CoordinateSystem;
 };
 
 // Class to manage collide effect
@@ -25,7 +22,7 @@ export default class CollideEffect implements Effect {
   useInPicking = true;
 
   private dummyCollideMap?: Texture2D;
-  private oldChannelInfo: Channel | null = null;
+  private oldRenderInfo: RenderInfo | null = null;
   private haveCollideLayers: Boolean = false;
   private collidePass?: CollidePass;
   private collideMap?: Texture2D;
@@ -47,27 +44,24 @@ export default class CollideEffect implements Effect {
     );
     if (maskLayers.length === 0) {
       this.haveCollideLayers = false;
-      this.oldChannelInfo = null;
+      this.oldRenderInfo = null;
       return;
     }
     this.haveCollideLayers = true;
 
     if (!this.collidePass) {
-      this.collidePass = new CollidePass(gl, {id: 'default-mask'});
+      this.collidePass = new CollidePass(gl, {id: 'default-collide'});
       this.collideMap = this.collidePass.collideMap;
     }
 
-    // Map layers to channels
+    // Map layers to render info
     const rootLayer = maskLayers[0].root;
-    const channel = {
-      id: 'collision-mask',
-      coordinateOrigin: rootLayer.props.coordinateOrigin,
-      coordinateSystem: rootLayer.props.coordinateSystem,
+    const renderInfo = {
       layerBounds: maskLayers.map(l => l.getBounds()),
       layers: maskLayers
     };
-    if (!this.oldChannelInfo) {
-      this.oldChannelInfo = channel;
+    if (!this.oldRenderInfo) {
+      this.oldRenderInfo = renderInfo;
     }
 
     // TODO - support multiple views
@@ -78,7 +72,7 @@ export default class CollideEffect implements Effect {
     // TODO 2X multiplier incorrect?
     this.collidePass.fbo.resize({width: 0.5 * gl.canvas.width, height: 0.5 * gl.canvas.height});
 
-    this._renderChannel(channel, {
+    this._render(renderInfo, {
       layerFilter,
       onViewportActive,
       views,
@@ -140,8 +134,8 @@ export default class CollideEffect implements Effect {
     }
   }
 
-  private _renderChannel(
-    channelInfo: Channel,
+  private _render(
+    renderInfo: RenderInfo,
     {
       layerFilter,
       onViewportActive,
@@ -156,33 +150,29 @@ export default class CollideEffect implements Effect {
       viewportChanged: boolean;
     }
   ) {
-    const oldChannelInfo = this.oldChannelInfo;
-    if (!oldChannelInfo) {
+    const oldRenderInfo = this.oldRenderInfo;
+    if (!oldRenderInfo) {
       return;
     }
 
-    const maskChanged =
-      // If a channel is new
-      channelInfo === oldChannelInfo ||
+    const renderInfoUpdated =
+      // If render info is new
+      renderInfo === oldRenderInfo ||
       // If sublayers have changed
-      oldChannelInfo.layers.length !== channelInfo.layers.length ||
+      oldRenderInfo.layers.length !== renderInfo.layers.length ||
       // If a sublayer's positions have been updated, the cached bounds will change shallowly
-      channelInfo.layerBounds.some((b, i) => b !== oldChannelInfo.layerBounds[i]);
+      renderInfo.layerBounds.some((b, i) => b !== oldRenderInfo.layerBounds[i]);
 
-    this.oldChannelInfo = channelInfo;
+    this.oldRenderInfo = renderInfo;
 
-    // console.log('maskChanged', maskChanged, 'viewportChanged', viewportChanged);
-    if (maskChanged || viewportChanged) {
-      // Recalculate mask bounds
+    if (renderInfoUpdated || viewportChanged) {
       this.lastViewport = viewport;
 
       // Rerender mask FBO
-      const {collidePass, collideMap} = this;
-
       // @ts-ignore (2532) This method is only called from preRender where collidePass is defined
-      collidePass.render({
+      this.collidePass.render({
         pass: 'collide',
-        layers: channelInfo.layers,
+        layers: renderInfo.layers,
         layerFilter,
         viewports: viewport ? [viewport] : [],
         onViewportActive,
@@ -215,6 +205,6 @@ export default class CollideEffect implements Effect {
 
     this.lastViewport = undefined;
     this.haveCollideLayers = false;
-    this.oldChannelInfo = null;
+    this.oldRenderInfo = null;
   }
 }
