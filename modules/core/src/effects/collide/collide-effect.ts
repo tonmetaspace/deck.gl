@@ -39,10 +39,10 @@ export default class CollideEffect implements Effect {
       });
     }
 
-    const maskLayers = layers.filter(
-      l => l.props.visible && l.props.operation === OPERATION.COLLIDE
+    const collideLayers = layers.filter(
+      ({props: {visible, operation}}) => visible && operation === OPERATION.COLLIDE
     );
-    if (maskLayers.length === 0) {
+    if (collideLayers.length === 0) {
       this.haveCollideLayers = false;
       this.oldRenderInfo = null;
       return;
@@ -54,84 +54,20 @@ export default class CollideEffect implements Effect {
       this.collideMap = this.collidePass.collideMap;
     }
 
-    // Map layers to render info
-    const rootLayer = maskLayers[0].root;
-    const renderInfo = {
-      layerBounds: maskLayers.map(l => l.getBounds()),
-      layers: maskLayers
-    };
+    // Collect layers to render
+    const renderInfo = {layerBounds: collideLayers.map(l => l.getBounds()), layers: collideLayers};
     if (!this.oldRenderInfo) {
       this.oldRenderInfo = renderInfo;
     }
 
-    // TODO - support multiple views
     const viewport = viewports[0];
     const viewportChanged = !this.lastViewport || !this.lastViewport.equals(viewport);
 
     // Resize framebuffer to match canvas
     // TODO 2X multiplier incorrect?
     this.collidePass.fbo.resize({width: 0.5 * gl.canvas.width, height: 0.5 * gl.canvas.height});
-
-    this._render(renderInfo, {
-      layerFilter,
-      onViewportActive,
-      views,
-      viewport,
-      viewportChanged
-    });
-
-    // Debug show FBO contents on screen
-    if (true) {
-      const color = readPixelsToArray(this.collideMap);
-      let canvas = document.getElementById('fbo-canvas') as HTMLCanvasElement;
-      const minimap = true;
-      const canvasHeight = (minimap ? 2 : 1) * this.collideMap.height;
-      if (!canvas) {
-        canvas = document.createElement('canvas') as HTMLCanvasElement;
-        canvas.id = 'fbo-canvas';
-        canvas.style.zIndex = '100';
-        canvas.style.position = 'absolute';
-        canvas.style.top = '0';
-        canvas.style.right = '0';
-        canvas.style.border = 'blue 1px solid';
-        canvas.style.transform = 'scaleY(-1)';
-        document.body.appendChild(canvas);
-      }
-      if (canvas.width !== this.collideMap.width || canvas.height !== canvasHeight) {
-        canvas.width = this.collideMap.width;
-        canvas.height = canvasHeight;
-        canvas.style.width = `${0.25 * canvas.width}px`; // Fit with 80% width #app
-      }
-      const ctx = canvas.getContext('2d')!;
-      const imageData = ctx.createImageData(canvas.width, canvas.height);
-
-      // Minimap
-      if (minimap) {
-        const zoom = 8; // Zoom factor for minimap
-        const {width, height} = canvas;
-        for (let y = 0; y < height; y++) {
-          for (let x = 0; x < width; x++) {
-            const d = 4 * (x + y * width); // destination pixel
-            const s = 4 * (Math.floor(x / zoom) + Math.floor(y / zoom) * width); // source
-            imageData.data[d + 0] = color[s + 0];
-            imageData.data[d + 1] = color[s + 1];
-            imageData.data[d + 2] = color[s + 2];
-            imageData.data[d + 3] = color[s + 3];
-          }
-        }
-      }
-
-      // Full map
-      const offset = minimap ? color.length : 0;
-      for (let i = 0; i < color.length; i += 4) {
-        imageData.data[offset + i + 0] = color[i + 0];
-        imageData.data[offset + i + 1] = color[i + 1];
-        imageData.data[offset + i + 2] = color[i + 2];
-        imageData.data[offset + i + 3] = color[i + 3];
-      }
-
-      ctx.putImageData(imageData, 0, 0);
-    }
+    this._render(renderInfo, {layerFilter, onViewportActive, views, viewport, viewportChanged});
+    this._debug();
   }
 
   private _render(
@@ -206,5 +142,58 @@ export default class CollideEffect implements Effect {
     this.lastViewport = undefined;
     this.haveCollideLayers = false;
     this.oldRenderInfo = null;
+  }
+
+  // Debug show FBO contents on screen
+  _debug() {
+    const minimap = true;
+    const color = readPixelsToArray(this.collideMap);
+    let canvas = document.getElementById('fbo-canvas') as HTMLCanvasElement;
+    const canvasHeight = (minimap ? 2 : 1) * this.collideMap.height;
+    if (!canvas) {
+      canvas = document.createElement('canvas') as HTMLCanvasElement;
+      canvas.id = 'fbo-canvas';
+      canvas.style.zIndex = '100';
+      canvas.style.position = 'absolute';
+      canvas.style.top = '0';
+      canvas.style.right = '0';
+      canvas.style.border = 'blue 1px solid';
+      canvas.style.transform = 'scaleY(-1)';
+      document.body.appendChild(canvas);
+    }
+    if (canvas.width !== this.collideMap.width || canvas.height !== canvasHeight) {
+      canvas.width = this.collideMap.width;
+      canvas.height = canvasHeight;
+      canvas.style.width = `${0.25 * canvas.width}px`; // Fit with 80% width #app
+    }
+    const ctx = canvas.getContext('2d')!;
+    const imageData = ctx.createImageData(canvas.width, canvas.height);
+
+    // Minimap
+    if (minimap) {
+      const zoom = 8; // Zoom factor for minimap
+      const {width, height} = canvas;
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const d = 4 * (x + y * width); // destination pixel
+          const s = 4 * (Math.floor(x / zoom) + Math.floor(y / zoom) * width); // source
+          imageData.data[d + 0] = color[s + 0];
+          imageData.data[d + 1] = color[s + 1];
+          imageData.data[d + 2] = color[s + 2];
+          imageData.data[d + 3] = color[s + 3];
+        }
+      }
+    }
+
+    // Full map
+    const offset = minimap ? color.length : 0;
+    for (let i = 0; i < color.length; i += 4) {
+      imageData.data[offset + i + 0] = color[i + 0];
+      imageData.data[offset + i + 1] = color[i + 1];
+      imageData.data[offset + i + 2] = color[i + 2];
+      imageData.data[offset + i + 3] = color[i + 3];
+    }
+
+    ctx.putImageData(imageData, 0, 0);
   }
 }
