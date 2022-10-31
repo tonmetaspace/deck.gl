@@ -40,10 +40,13 @@ export default class CollidePass extends LayersPass {
     const gl = this.gl;
 
     const colorMask = [true, true, true, true];
+    const padding = 1;
 
     return withParameters(
       gl,
       {
+        scissorTest: true,
+        scissor: [padding, padding, this.fbo.width - 2 * padding, this.fbo.height - 2 * padding],
         clearColor: [0, 0, 0, 0],
         blend: false,
         colorMask,
