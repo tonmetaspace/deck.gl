@@ -6,6 +6,12 @@ import DeckGL from '@deck.gl/react';
 import {COORDINATE_SYSTEM, OPERATION} from '@deck.gl/core';
 import {GeoJsonLayer, ScatterplotLayer, SolidPolygonLayer} from '@deck.gl/layers';
 import {CollideExtension} from '@deck.gl/extensions';
+import {CartoLayer, setDefaultCredentials, MAP_TYPES} from '@deck.gl/carto';
+import {parse} from '@loaders.gl/core';
+
+setDefaultCredentials({
+  accessToken: 'XXX'
+});
 
 const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/voyager-nolabels-gl-style/style.json';
 const AIR_PORTS =
@@ -32,6 +38,7 @@ const basemap = new GeoJsonLayer({
 /* eslint-disable react/no-deprecated */
 export default function App() {
   const [collideEnabled, setCollideEnabled] = useState(true);
+  const [showCarto, setShowCarto] = useState(true);
   const [showPoints, setShowPoints] = useState(true);
   const [showLabels, setShowLabels] = useState(false);
 
@@ -40,7 +47,7 @@ export default function App() {
     pointRadiusUnits: 'pixels',
     getPointRadius: 8,
     getFillColor: d => [25 * d.properties.scalerank, 255 - 25 * d.properties.scalerank, 123],
-    pickable: true, // Needed to send through pickingColor
+    pickable: true,
     onClick: ({object}) => console.log(object.properties)
   };
 
@@ -92,6 +99,36 @@ export default function App() {
     })
   ];
 
+  const cartoProps = {
+    connection: 'bigquery',
+    type: MAP_TYPES.TABLE,
+    data: 'cartobq.public_account.populated_places',
+    pointRadiusMinPixels: 5,
+    getFillColor: [200, 0, 80],
+    pointType: 'text',
+    getText: f => f.properties.name,
+    getTextColor: [0, 0, 0],
+    getTextSize: 18,
+    pickable: true,
+    onClick: ({object}) => console.log(object.properties)
+  };
+
+  const carto = [
+    new CartoLayer({
+      id: 'collide-places',
+      operation: OPERATION.COLLIDE,
+      ...cartoProps,
+      getTextSize: 2 * labelsProps.getTextSize // Enlarge point to increase hit area
+    }),
+    new CartoLayer({
+      id: 'places',
+      extensions: [new CollideExtension()],
+      collideEnabled,
+      parameters: {depthTest: false},
+      ...cartoProps
+    })
+  ];
+
   const viewState = {
     longitude: 60,
     latitude: 40,
@@ -104,7 +141,10 @@ export default function App() {
   return (
     <>
       <DeckGL
-        layers={[].concat(showPoints ? points : []).concat(showLabels ? labels : [])}
+        layers={[]
+          .concat(showCarto ? carto : [])
+          .concat(showPoints ? points : [])
+          .concat(showLabels ? labels : [])}
         initialViewState={viewState}
         controller={true}
       >
@@ -118,6 +158,10 @@ export default function App() {
             onChange={() => setCollideEnabled(!collideEnabled)}
           />
           Use mask
+        </label>
+        <label>
+          <input type="checkbox" checked={showCarto} onChange={() => setShowCarto(!showCarto)} />
+          Show carto
         </label>
         <label>
           <input type="checkbox" checked={showPoints} onChange={() => setShowPoints(!showPoints)} />
