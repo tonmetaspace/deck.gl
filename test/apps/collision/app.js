@@ -36,7 +36,7 @@ const basemap = new GeoJsonLayer({
 /* eslint-disable react/no-deprecated */
 export default function App() {
   const [collideEnabled, setCollideEnabled] = useState(true);
-  const [showCarto, setShowCarto] = useState(true);
+  const [showCarto, setShowCarto] = useState(false);
   const [showPoints, setShowPoints] = useState(true);
   const [showLabels, setShowLabels] = useState(false);
 
@@ -59,7 +59,7 @@ export default function App() {
 
   const points = [
     new GeoJsonLayer({
-      id: 'collide-points', // Hacked to 'collision-mask' in MaskEffect
+      id: 'collide-points',
       operation: OPERATION.COLLIDE,
       pointAntialiasing: false,
       ...pointsProps,
@@ -84,7 +84,7 @@ export default function App() {
 
   const labels = [
     new GeoJsonLayer({
-      id: 'collide-labels', // Hacked to 'collision-mask' in MaskEffect
+      id: 'collide-labels',
       operation: OPERATION.COLLIDE,
       ...labelsProps,
       getTextSize: 2 * labelsProps.getTextSize // Enlarge point to increase hit area
@@ -156,7 +156,7 @@ export default function App() {
             checked={collideEnabled}
             onChange={() => setCollideEnabled(!collideEnabled)}
           />
-          Use mask
+          Collisions
         </label>
         <label>
           <input type="checkbox" checked={showCarto} onChange={() => setShowCarto(!showCarto)} />
