@@ -69,6 +69,7 @@ export default function App() {
       id: 'points',
       extensions: [new CollideExtension()],
       collideEnabled,
+      parameters: {depthTest: false},
       ...pointsProps
     })
   ];
