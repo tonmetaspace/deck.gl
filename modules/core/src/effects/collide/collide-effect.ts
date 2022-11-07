@@ -1,14 +1,11 @@
 import {Texture2D, cssToDeviceRatio} from '@luma.gl/core';
 import {readPixelsToArray} from '@luma.gl/core';
-import {equals} from '@math.gl/core';
 import CollidePass from '../../passes/collide-pass';
 import {OPERATION} from '../../lib/constants';
-import log from '../../utils/log';
 
 import type {Effect, PreRenderOptions} from '../../lib/effect';
 import type Layer from '../../lib/layer';
 import type Viewport from '../../viewports/viewport';
-import type {CoordinateSystem} from '../../lib/constants';
 
 // Factor by which to downscale Collide FBO relative to canvas
 const DOWNSCALE = 2;
@@ -72,7 +69,7 @@ export default class CollideEffect implements Effect {
       height: gl.canvas.height / DOWNSCALE
     });
     this._render(renderInfo, {layerFilter, onViewportActive, views, viewport, viewportChanged});
-    // this._debug();
+    this._debug();
   }
 
   private _render(
@@ -156,7 +153,7 @@ export default class CollideEffect implements Effect {
     let canvas = document.getElementById('fbo-canvas') as HTMLCanvasElement;
     const canvasHeight = (minimap ? 2 : 1) * this.collideMap.height;
     if (!canvas) {
-      canvas = document.createElement('canvas') as HTMLCanvasElement;
+      canvas = document.createElement('canvas');
       canvas.id = 'fbo-canvas';
       canvas.style.zIndex = '100';
       canvas.style.position = 'absolute';
