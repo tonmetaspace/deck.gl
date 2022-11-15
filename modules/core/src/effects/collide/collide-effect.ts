@@ -49,6 +49,16 @@ export default class CollideEffect implements Effect {
     }
     this.haveCollideLayers = true;
 
+    // TODO need to register the `collide` module here to
+    // if (!this.programManager) {
+    //   // TODO - support multiple contexts
+    //   this.programManager = ProgramManager.getDefaultProgramManager(gl);
+    //   if (collide) {
+    //     this.programManager.addDefaultModule(collide);
+    //   }
+    // }
+
+    // TODO need multiple passes here for independent layers
     if (!this.collidePass) {
       this.collidePass = new CollidePass(gl, {id: 'default-collide'});
       this.collideMap = this.collidePass.collideMap;
