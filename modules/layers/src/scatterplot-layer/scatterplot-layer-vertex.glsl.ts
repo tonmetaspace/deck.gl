@@ -93,6 +93,9 @@ void main(void) {
 
   DECKGL_FILTER_GL_POSITION(gl_Position, geometry);
 
+  // Hack
+  gl_Position.z = 0.01 * geometry.worldPosition.x;
+
   // Apply opacity to instance color, or return instance picking color
   vFillColor = vec4(instanceFillColors.rgb, instanceFillColors.a * opacity);
   DECKGL_FILTER_COLOR(vFillColor, geometry);

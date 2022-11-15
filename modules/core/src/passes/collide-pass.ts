@@ -1,4 +1,4 @@
-import {Framebuffer, Texture2D, withParameters} from '@luma.gl/core';
+import {Framebuffer, Renderbuffer, Texture2D, withParameters} from '@luma.gl/core';
 import {OPERATION} from '../lib/constants';
 import LayersPass from './layers-pass';
 
@@ -8,6 +8,7 @@ type CollidePassRenderOptions = LayersPassRenderOptions & {};
 
 export default class CollidePass extends LayersPass {
   collideMap: Texture2D;
+  depthBuffer: Renderbuffer;
   fbo: Framebuffer;
 
   constructor(gl, props: {id: string}) {
@@ -26,12 +27,15 @@ export default class CollidePass extends LayersPass {
       }
     });
 
+    this.depthBuffer = new Renderbuffer(gl, {format: gl.DEPTH_COMPONENT16, width, height});
+
     this.fbo = new Framebuffer(gl, {
       id: 'collidemap',
       width,
       height,
       attachments: {
-        [gl.COLOR_ATTACHMENT0]: this.collideMap
+        [gl.COLOR_ATTACHMENT0]: this.collideMap,
+        [gl.DEPTH_ATTACHMENT]: this.depthBuffer
       }
     });
   }
@@ -50,7 +54,8 @@ export default class CollidePass extends LayersPass {
         clearColor: [0, 0, 0, 0],
         blend: false,
         colorMask,
-        depthTest: false // TODO Perhaps true to allow correct sorting between layers (NEED DEPTH_ATTACHMENT!)
+        depthTest: true,
+        depthRange: [0, 1]
       },
       () => super.render({...options, target: this.fbo, pass: 'collide'})
     );
