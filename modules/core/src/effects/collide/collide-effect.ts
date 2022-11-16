@@ -1,7 +1,8 @@
-import {Texture2D, cssToDeviceRatio} from '@luma.gl/core';
+import {Texture2D, ProgramManager, cssToDeviceRatio} from '@luma.gl/core';
 import {readPixelsToArray} from '@luma.gl/core';
 import CollidePass from '../../passes/collide-pass';
 import {OPERATION} from '../../lib/constants';
+import collide from '../../shaderlib/collide/collide';
 
 import type {Effect, PreRenderOptions} from '../../lib/effect';
 import type Layer from '../../lib/layer';
@@ -22,6 +23,7 @@ export default class CollideEffect implements Effect {
   useInPicking = true;
 
   private dummyCollideMap?: Texture2D;
+  private programManager?: ProgramManager;
   private oldRenderInfo: RenderInfo | null = null;
   private haveCollideLayers: Boolean = false;
   private collidePass?: CollidePass;
@@ -49,14 +51,13 @@ export default class CollideEffect implements Effect {
     }
     this.haveCollideLayers = true;
 
-    // TODO need to register the `collide` module here to
-    // if (!this.programManager) {
-    //   // TODO - support multiple contexts
-    //   this.programManager = ProgramManager.getDefaultProgramManager(gl);
-    //   if (collide) {
-    //     this.programManager.addDefaultModule(collide);
-    //   }
-    // }
+    if (!this.programManager) {
+      // TODO - support multiple contexts
+      this.programManager = ProgramManager.getDefaultProgramManager(gl);
+      if (collide) {
+        this.programManager.addDefaultModule(collide);
+      }
+    }
 
     // TODO need multiple passes here for independent layers
     if (!this.collidePass) {
@@ -143,6 +144,11 @@ export default class CollideEffect implements Effect {
     if (this.dummyCollideMap) {
       this.dummyCollideMap.delete();
       this.dummyCollideMap = undefined;
+    }
+
+    if (this.haveCollideLayers && this.programManager) {
+      this.programManager.removeDefaultModule(collide);
+      this.programManager = null;
     }
 
     if (this.collidePass) {

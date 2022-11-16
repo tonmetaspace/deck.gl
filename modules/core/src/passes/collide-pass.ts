@@ -67,11 +67,12 @@ export default class CollidePass extends LayersPass {
 
   getModuleParameters() {
     // Draw picking colors into collide FBO
-    return {pickingActive: 1, pickingAttribute: false, lightSources: {}};
+    return {drawToCollideMap: true, pickingActive: 1, pickingAttribute: false, lightSources: {}};
   }
 
   delete() {
     this.fbo.delete();
     this.collideMap.delete();
+    this.depthBuffer.delete();
   }
 }

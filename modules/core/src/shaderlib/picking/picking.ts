@@ -17,11 +17,6 @@ export default {
     'vs:DECKGL_FILTER_GL_POSITION': `
     // for picking depth values
     picking_setPickingAttribute(position.z / position.w);
-
-    // HACK should create 'collide' module
-    if (picking_uActive) {
-       position.z = 0.01 * geometry.worldPosition.x;
-    }
   `,
     'vs:DECKGL_FILTER_COLOR': `
   picking_setPickingColor(geometry.pickingColor);
