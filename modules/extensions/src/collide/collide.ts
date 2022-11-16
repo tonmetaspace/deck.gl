@@ -9,7 +9,7 @@ const defaultProps = {
 
 export type CollideExtensionProps = {
   /**
-   * Collission detection is disabled if `collideEnabled` is false.
+   * Collision detection is disabled if `collideEnabled` is false.
    */
   collideEnabled?: boolean;
 };

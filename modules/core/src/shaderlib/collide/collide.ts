@@ -12,13 +12,24 @@ export default {
   name: 'collide-write',
   dependencies: [picking],
   vs: `
+#ifdef NON_INSTANCED_MODEL
+attribute float collidePriorities;
+#else
+attribute float instanceCollidePriorities;
+#endif
+
 uniform bool collide_uActive;
 uniform bool collide_uCollideSort;
 `,
   inject: {
     'vs:DECKGL_FILTER_GL_POSITION': `
     if (collide_uActive) {
-      position.z = 0.01 * geometry.worldPosition.x;
+      #ifdef NON_INSTANCED_MODEL
+      float collidePriority = collidePriorities;
+      #else
+      float collidePriority = instanceCollidePriorities;
+      #endif
+      position.z = 0.001 * collidePriority * position.w; // Support range -1000 -> 1000
     }
   `
   },

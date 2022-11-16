@@ -5,7 +5,7 @@ import {StaticMap} from 'react-map-gl';
 import DeckGL from '@deck.gl/react';
 import {COORDINATE_SYSTEM, OPERATION} from '@deck.gl/core';
 import {GeoJsonLayer, ScatterplotLayer, SolidPolygonLayer} from '@deck.gl/layers';
-import {CollideExtension} from '@deck.gl/extensions';
+import {CollideExtension, CollideWriteExtension} from '@deck.gl/extensions';
 import {CartoLayer, setDefaultCredentials, MAP_TYPES} from '@deck.gl/carto';
 import {parse} from '@loaders.gl/core';
 
@@ -60,7 +60,9 @@ export default function App() {
   const points = [
     new GeoJsonLayer({
       id: 'collide-points',
+      extensions: [new CollideWriteExtension()],
       operation: OPERATION.COLLIDE,
+      getCollidePriority: d => -d.properties.scalerank,
       pointAntialiasing: false,
       ...pointsProps,
       getPointRadius: 2 * pointsProps.getPointRadius // Enlarge point to increase hit area
