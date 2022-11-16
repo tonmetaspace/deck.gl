@@ -118,7 +118,7 @@ const getCollideUniforms = (opts?: CollideModuleSettings | {}): Record<string, a
 };
 
 export default {
-  name: 'collide',
+  name: 'collide-read',
   dependencies: [project],
   vs,
   fs,

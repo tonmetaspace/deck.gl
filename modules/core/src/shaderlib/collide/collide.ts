@@ -9,7 +9,7 @@ type CollideModuleSettings = {
 };
 
 export default {
-  name: 'collide',
+  name: 'collide-write',
   dependencies: [picking],
   vs: `
 uniform bool collide_uActive;
