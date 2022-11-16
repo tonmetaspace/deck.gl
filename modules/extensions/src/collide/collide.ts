@@ -1,9 +1,11 @@
-import {COORDINATE_SYSTEM, LayerExtension, log} from '@deck.gl/core';
+import {COORDINATE_SYSTEM, LayerExtension, log, OPERATION} from '@deck.gl/core';
 import collide from './shader-module';
+import GL from '@luma.gl/constants';
 
-import type {Layer} from '@deck.gl/core';
+import type {Layer, LayerContext} from '@deck.gl/core';
 
 const defaultProps = {
+  getCollidePriority: {type: 'accessor', value: 0},
   collideEnabled: true
 };
 
@@ -20,19 +22,41 @@ export default class CollideExtension extends LayerExtension {
   static extensionName = 'CollideExtension';
 
   getShaders(this: Layer<CollideExtensionProps>): any {
-    return {
-      modules: [collide]
-    };
+    const isWrite = this.props.operation === OPERATION.COLLIDE;
+    return isWrite ? {} : {modules: [collide]};
   }
 
   /* eslint-disable camelcase */
   draw(this: Layer<CollideExtensionProps>, {uniforms, context, moduleParameters}: any) {
+    const isWrite = this.props.operation === OPERATION.COLLIDE;
+    if (isWrite) return;
+
     const {collideEnabled = true} = this.props;
     const {haveCollideLayers} = moduleParameters;
     if (haveCollideLayers && collideEnabled) {
       uniforms.collide_enabled = true;
     } else {
       uniforms.collide_enabled = false;
+    }
+  }
+
+  initializeState(this: Layer<CollideExtensionProps>, context: LayerContext, extension: this) {
+    const isWrite = this.props.operation === OPERATION.COLLIDE;
+    if (!isWrite) return;
+
+    const attributeManager = this.getAttributeManager();
+    if (attributeManager) {
+      attributeManager.add({
+        collidePriorities: {
+          size: 1,
+          type: GL.FLOAT,
+          accessor: 'getCollidePriority',
+          shaderAttributes: {
+            collidePriorities: {divisor: 0},
+            instanceCollidePriorities: {divisor: 1}
+          }
+        }
+      });
     }
   }
 }

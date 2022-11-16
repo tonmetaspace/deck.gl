@@ -5,7 +5,6 @@ export {default as PathStyleExtension} from './path-style/path-style';
 export {default as FillStyleExtension} from './fill-style/fill-style';
 export {default as ClipExtension} from './clip/clip';
 export {default as CollideExtension} from './collide/collide';
-export {default as CollideWriteExtension} from './collide/collide-write';
 export {default as MaskExtension} from './mask/mask';
 
 // Shader module
@@ -18,5 +17,4 @@ export type {PathStyleExtensionProps} from './path-style/path-style';
 export type {FillStyleExtensionProps} from './fill-style/fill-style';
 export type {ClipExtensionProps} from './clip/clip';
 export type {CollideExtensionProps} from './collide/collide';
-export type {CollideWriteExtensionProps} from './collide/collide-write';
 export type {MaskExtensionProps} from './mask/mask';
