@@ -61,19 +61,20 @@ export default function App() {
     new GeoJsonLayer({
       id: 'collide-points',
       extensions: [new CollideExtension()],
-      operation: OPERATION.COLLIDE,
+      collideEnabled,
+      // operation: OPERATION.COLLIDE,
       getCollidePriority: d => -d.properties.scalerank,
       pointAntialiasing: false,
-      ...pointsProps,
-      getPointRadius: 2 * pointsProps.getPointRadius // Enlarge point to increase hit area
-    }),
-    new GeoJsonLayer({
-      id: 'points',
-      extensions: [new CollideExtension()],
-      collideEnabled,
-      parameters: {depthTest: false},
       ...pointsProps
+      // getPointRadius: 2 * pointsProps.getPointRadius // Enlarge point to increase hit area
     })
+    // new GeoJsonLayer({
+    //   id: 'points',
+    //   extensions: [new CollideExtension()],
+    //   collideEnabled,
+    //   parameters: {depthTest: false},
+    //   ...pointsProps
+    // })
   ];
 
   const labelsProps = {

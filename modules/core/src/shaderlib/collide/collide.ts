@@ -37,8 +37,12 @@ uniform bool collide_uCollideSort;
     // @ts-ignore
     if ('viewport' in opts && opts.drawToCollideMap) {
       // @ts-ignore
-      const collide_uActive = Boolean(opts.drawToCollideMap);
-      return {collide_uActive: true};
+      const {dummyMap: collide_texture} = opts;
+      return {
+        collide_uActive: true,
+        // To avoid feedback loop forming between Framebuffer and active Texture.
+        collide_texture
+      };
     }
     return {};
   }

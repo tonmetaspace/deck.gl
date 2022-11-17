@@ -22,15 +22,11 @@ export default class CollideExtension extends LayerExtension {
   static extensionName = 'CollideExtension';
 
   getShaders(this: Layer<CollideExtensionProps>): any {
-    const isWrite = this.props.operation === OPERATION.COLLIDE;
-    return isWrite ? {} : {modules: [collide]};
+    return {modules: [collide]};
   }
 
   /* eslint-disable camelcase */
   draw(this: Layer<CollideExtensionProps>, {uniforms, context, moduleParameters}: any) {
-    const isWrite = moduleParameters.drawToCollideMap;
-    if (isWrite) return;
-
     const {collideEnabled = true} = this.props;
     const {haveCollideLayers} = moduleParameters;
     if (haveCollideLayers && collideEnabled) {
@@ -41,9 +37,7 @@ export default class CollideExtension extends LayerExtension {
   }
 
   initializeState(this: Layer<CollideExtensionProps>, context: LayerContext, extension: this) {
-    const isWrite = this.props.operation === OPERATION.COLLIDE;
-    if (!isWrite) return;
-
+    // TODO disable in normal render
     const attributeManager = this.getAttributeManager();
     if (attributeManager) {
       attributeManager.add({

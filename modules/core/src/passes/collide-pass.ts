@@ -10,6 +10,7 @@ export default class CollidePass extends LayersPass {
   collideMap: Texture2D;
   depthBuffer: Renderbuffer;
   fbo: Framebuffer;
+  dummyMap: Texture2D;
 
   constructor(gl, props: {id: string}) {
     super(gl, props);
@@ -38,6 +39,8 @@ export default class CollidePass extends LayersPass {
         [gl.DEPTH_ATTACHMENT]: this.depthBuffer
       }
     });
+
+    this.dummyMap = new Texture2D(gl, {width: 1, height: 1});
   }
 
   render(options: CollidePassRenderOptions) {
@@ -62,12 +65,20 @@ export default class CollidePass extends LayersPass {
   }
 
   shouldDrawLayer(layer) {
-    return layer.props.operation === OPERATION.COLLIDE;
+    return Boolean(
+      layer.props.extensions.find(e => e.constructor.extensionName === 'CollideExtension')
+    );
   }
 
   getModuleParameters() {
     // Draw picking colors into collide FBO
-    return {drawToCollideMap: true, pickingActive: 1, pickingAttribute: false, lightSources: {}};
+    return {
+      drawToCollideMap: true,
+      dummyMap: this.dummyMap,
+      pickingActive: 1,
+      pickingAttribute: false,
+      lightSources: {}
+    };
   }
 
   delete() {
