@@ -52,8 +52,9 @@ export default function App() {
 
   const points = [
     new GeoJsonLayer({
-      id: 'collide-points',
+      id: 'points',
       data: PLACES,
+
       pointType: 'circle',
       ...props,
 
@@ -67,58 +68,45 @@ export default function App() {
     })
   ];
 
-  const labelsProps = {
-    ...props,
-    data: AIR_PORTS,
-    pointType: 'text',
-    getText: f => f.properties.name,
-    getTextColor: [0, 155, 0],
-    getTextSize: 24
-  };
-
   const labels = [
     new GeoJsonLayer({
       id: 'collide-labels',
-      operation: OPERATION.COLLIDE,
-      ...labelsProps,
-      getTextSize: 2 * labelsProps.getTextSize // Enlarge point to increase hit area
-    }),
-    new GeoJsonLayer({
-      id: 'labels',
+      data: AIR_PORTS,
+
+      pointType: 'text',
+      getText: f => f.properties.name,
+      getTextColor: [0, 155, 0],
+      getTextSize: 24,
+      ...props,
+
       extensions: [new CollideExtension()],
       collideEnabled,
-      parameters: {depthTest: false},
-      ...labelsProps
+      getCollidePriority: d => -d.properties.scalerank,
+      collideTestProps: {
+        getTextSize: 36 // Enlarge point to increase hit area
+      }
     })
   ];
 
-  const cartoProps = {
-    connection: 'bigquery',
-    type: MAP_TYPES.TABLE,
-    data: 'cartobq.public_account.populated_places',
-    pointRadiusMinPixels: 5,
-    getFillColor: [200, 0, 80],
-    pointType: 'text',
-    getText: f => f.properties.name,
-    getTextColor: [0, 0, 0],
-    getTextSize: 12,
-    pickable: true,
-    onClick: ({object}) => console.log(object.properties)
-  };
-
   const carto = [
     new CartoLayer({
-      id: 'collide-places',
-      operation: OPERATION.COLLIDE,
-      ...cartoProps,
-      getTextSize: 2 * labelsProps.getTextSize // Enlarge point to increase hit area
-    }),
-    new CartoLayer({
       id: 'places',
+      connection: 'bigquery',
+      type: MAP_TYPES.TABLE,
+      data: 'cartobq.public_account.populated_places',
+
+      getFillColor: [200, 0, 80],
+      pointType: 'text',
+      getText: f => f.properties.name,
+      getTextColor: [0, 0, 0],
+      getTextSize: 12,
+      pickable: true,
+      parameters: {depthTest: false},
+
       extensions: [new CollideExtension()],
       collideEnabled,
-      parameters: {depthTest: false},
-      ...cartoProps
+      // TODO interlayer priority not working
+      getCollidePriority: 0
     })
   ];
 
