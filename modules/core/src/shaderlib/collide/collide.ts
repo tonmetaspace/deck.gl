@@ -1,13 +1,6 @@
 import picking from '../picking/picking';
 import type {ShaderModule} from '../../types/types';
 
-type CollideModuleSettings = {
-  /** Set to true when rendering to off-screen "collision" buffer */
-  drawToCollideMap?: boolean;
-  /** Set to true when objects should be sorted by the collide_sort attribute */
-  collideCollideSort?: boolean;
-};
-
 export default {
   name: 'collide-write',
   dependencies: [picking],
@@ -18,12 +11,11 @@ attribute float collidePriorities;
 attribute float instanceCollidePriorities;
 #endif
 
-uniform bool collide_uActive;
-uniform bool collide_uCollideSort;
+uniform bool collide_sort;
 `,
   inject: {
     'vs:DECKGL_FILTER_GL_POSITION': `
-    if (collide_uActive) {
+    if (collide_sort) {
       #ifdef NON_INSTANCED_MODEL
       float collidePriority = collidePriorities;
       #else
@@ -32,18 +24,5 @@ uniform bool collide_uCollideSort;
       position.z = 0.001 * collidePriority * position.w; // Support range -1000 -> 1000
     }
   `
-  },
-  getUniforms: (opts = {}, context = {}) => {
-    // @ts-ignore
-    if ('viewport' in opts && opts.drawToCollideMap) {
-      // @ts-ignore
-      const {dummyMap: collide_texture} = opts;
-      return {
-        collide_uActive: true,
-        // To avoid feedback loop forming between Framebuffer and active Texture.
-        collide_texture
-      };
-    }
-    return {};
   }
-} as ShaderModule<CollideModuleSettings>;
+} as ShaderModule;

@@ -38,6 +38,10 @@ export default class CollideExtension extends LayerExtension {
     }
 
     if (drawToCollideMap) {
+      // To avoid feedback loop forming between Framebuffer and active Texture.
+      uniforms.collide_texture = moduleParameters.dummyMap;
+      uniforms.collide_sort = 'getCollidePriority' in this.props;
+
       this.props = {
         // @ts-ignore
         ...this.constructor.defaultProps,
@@ -50,11 +54,10 @@ export default class CollideExtension extends LayerExtension {
   initializeState(this: Layer<CollideExtensionProps>, context: LayerContext, extension: this) {
     // TODO disable in normal render
     const attributeManager = this.getAttributeManager();
-    if (attributeManager) {
+    if (attributeManager && 'getCollidePriority' in this.props) {
       attributeManager.add({
         collidePriorities: {
           size: 1,
-          type: GL.FLOAT,
           accessor: 'getCollidePriority',
           shaderAttributes: {
             collidePriorities: {divisor: 0},
