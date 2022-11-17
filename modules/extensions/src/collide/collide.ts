@@ -28,7 +28,7 @@ export default class CollideExtension extends LayerExtension {
 
   /* eslint-disable camelcase */
   draw(this: Layer<CollideExtensionProps>, {uniforms, context, moduleParameters}: any) {
-    const isWrite = this.props.operation === OPERATION.COLLIDE;
+    const isWrite = moduleParameters.drawToCollideMap;
     if (isWrite) return;
 
     const {collideEnabled = true} = this.props;

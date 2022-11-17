@@ -109,7 +109,7 @@ type CollideModuleSettings = {
 
 /* eslint-disable camelcase */
 const getCollideUniforms = (opts?: CollideModuleSettings | {}): Record<string, any> => {
-  if (opts && 'collideMap' in opts) {
+  if (opts && 'collideMap' in opts && opts.drawToCollideMap !== true) {
     return {
       collide_texture: opts.collideMap
     };
