@@ -15,6 +15,10 @@ export type CollideExtensionProps = {
    * Collision detection is disabled if `collideEnabled` is false.
    */
   collideEnabled?: boolean;
+
+  /**
+   * Props to override when rendering collision map
+   */
   collideTestProps?: {};
 };
 
@@ -29,30 +33,27 @@ export default class CollideExtension extends LayerExtension {
 
   /* eslint-disable camelcase */
   draw(this: Layer<CollideExtensionProps>, {uniforms, context, moduleParameters}: any) {
-    const {collideEnabled = true} = this.props;
     const {drawToCollideMap, haveCollideLayers} = moduleParameters;
-    if (haveCollideLayers && collideEnabled) {
-      uniforms.collide_enabled = true;
-    } else {
-      uniforms.collide_enabled = false;
-    }
+    uniforms.collide_enabled = Boolean(haveCollideLayers);
 
     if (drawToCollideMap) {
       // To avoid feedback loop forming between Framebuffer and active Texture.
       uniforms.collide_texture = moduleParameters.dummyMap;
       uniforms.collide_sort = 'getCollidePriority' in this.props;
 
+      // Override any props with those defined in collideTestProps
       this.props = {
         // @ts-ignore
         ...this.constructor.defaultProps,
         ...this.props,
         ...this.props.collideTestProps
       };
+    } else {
+      uniforms.collide_sort = false;
     }
   }
 
   initializeState(this: Layer<CollideExtensionProps>, context: LayerContext, extension: this) {
-    // TODO disable in normal render
     const attributeManager = this.getAttributeManager();
     if (attributeManager && 'getCollidePriority' in this.props) {
       attributeManager.add({

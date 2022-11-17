@@ -42,8 +42,11 @@ export default class CollideEffect implements Effect {
     }
 
     const collideLayers = layers.filter(
-      ({props: {visible, extensions}}) =>
-        visible && extensions.find(e => e.constructor.extensionName === 'CollideExtension')
+      // @ts-ignore
+      ({props: {visible, extensions, collideEnabled}}) =>
+        visible &&
+        extensions.find(e => e.constructor.extensionName === 'CollideExtension') &&
+        collideEnabled
     );
     if (collideLayers.length === 0) {
       this.haveCollideLayers = false;
