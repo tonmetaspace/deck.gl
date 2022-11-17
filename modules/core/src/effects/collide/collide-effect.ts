@@ -22,7 +22,6 @@ export default class CollideEffect implements Effect {
   props = null;
   useInPicking = true;
 
-  private dummyCollideMap?: Texture2D;
   private programManager?: ProgramManager;
   private oldRenderInfo: RenderInfo | null = null;
   private haveCollideLayers: Boolean = false;
@@ -34,13 +33,6 @@ export default class CollideEffect implements Effect {
     gl: WebGLRenderingContext,
     {layers, layerFilter, viewports, onViewportActive, views}: PreRenderOptions
   ): void {
-    if (!this.dummyCollideMap) {
-      this.dummyCollideMap = new Texture2D(gl, {
-        width: 1,
-        height: 1
-      });
-    }
-
     const collideLayers = layers.filter(
       // @ts-ignore
       ({props: {visible, extensions, collideEnabled}}) =>
@@ -139,17 +131,12 @@ export default class CollideEffect implements Effect {
 
   getModuleParameters(): {collideMap: Texture2D; haveCollideLayers: Boolean} {
     return {
-      collideMap: this.haveCollideLayers ? this.collideMap : this.dummyCollideMap,
+      collideMap: this.collideMap,
       haveCollideLayers: this.haveCollideLayers
     };
   }
 
   cleanup(): void {
-    if (this.dummyCollideMap) {
-      this.dummyCollideMap.delete();
-      this.dummyCollideMap = undefined;
-    }
-
     if (this.haveCollideLayers && this.programManager) {
       this.programManager.removeDefaultModule(collide);
       this.programManager = null;
