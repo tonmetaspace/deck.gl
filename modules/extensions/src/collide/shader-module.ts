@@ -103,25 +103,10 @@ varying vec3 collide_pickingColor;
 `
 };
 
-type CollideModuleSettings = {
-  collideMap?: Texture2D;
-};
-
-/* eslint-disable camelcase */
-const getCollideUniforms = (opts?: CollideModuleSettings | {}): Record<string, any> => {
-  if (opts && 'collideMap' in opts && opts.drawToCollideMap !== true) {
-    return {
-      collide_texture: opts.collideMap
-    };
-  }
-  return {};
-};
-
 export default {
   name: 'collide-read',
   dependencies: [project],
   vs,
   fs,
-  inject,
-  getUniforms: getCollideUniforms
-} as ShaderModule<CollideModuleSettings>;
+  inject
+} as ShaderModule;

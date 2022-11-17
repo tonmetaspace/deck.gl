@@ -50,6 +50,7 @@ export default class CollideExtension extends LayerExtension {
       };
     } else {
       uniforms.collide_sort = false;
+      uniforms.collide_texture = moduleParameters.collideMap;
     }
   }
 
