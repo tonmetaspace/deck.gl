@@ -35,10 +35,9 @@ export default class CollideExtension extends LayerExtension {
   draw(this: Layer<CollideExtensionProps>, {uniforms, context, moduleParameters}: any) {
     const {drawToCollideMap, haveCollideLayers} = moduleParameters;
     uniforms.collide_enabled = Boolean(haveCollideLayers);
+    uniforms.collide_texture = moduleParameters.collideMap;
 
     if (drawToCollideMap) {
-      // To avoid feedback loop forming between Framebuffer and active Texture.
-      uniforms.collide_texture = moduleParameters.dummyMap;
       uniforms.collide_sort = 'getCollidePriority' in this.props;
 
       // Override any props with those defined in collideTestProps
@@ -50,7 +49,6 @@ export default class CollideExtension extends LayerExtension {
       };
     } else {
       uniforms.collide_sort = false;
-      uniforms.collide_texture = moduleParameters.collideMap;
     }
   }
 

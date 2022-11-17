@@ -74,7 +74,8 @@ export default class CollidePass extends LayersPass {
     // Draw picking colors into collide FBO
     return {
       drawToCollideMap: true,
-      dummyMap: this.dummyMap,
+      // To avoid feedback loop forming between Framebuffer and active Texture.
+      collideMap: this.dummyMap,
       pickingActive: 1,
       pickingAttribute: false,
       lightSources: {}
