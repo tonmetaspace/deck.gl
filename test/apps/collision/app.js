@@ -83,7 +83,7 @@ export default function App() {
       collideEnabled,
       getCollidePriority: d => -d.properties.scalerank,
       collideTestProps: {
-        getTextSize: 36 // Enlarge point to increase hit area
+        sizeScale: 2 // Enlarge text to increase hit area
       }
     })
   ];
@@ -106,7 +106,10 @@ export default function App() {
       extensions: [new CollideExtension()],
       collideEnabled,
       // TODO interlayer priority not working
-      getCollidePriority: 0
+      getCollidePriority: 0,
+      collideTestProps: {
+        sizeScale: 2 // Enlarge text to increase hit area
+      }
     })
   ];
 

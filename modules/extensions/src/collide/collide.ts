@@ -6,7 +6,8 @@ import type {Layer, LayerContext} from '@deck.gl/core';
 
 const defaultProps = {
   getCollidePriority: {type: 'accessor', value: 0},
-  collideEnabled: true
+  collideEnabled: true,
+  collideTestProps: {}
 };
 
 export type CollideExtensionProps = {
@@ -14,6 +15,7 @@ export type CollideExtensionProps = {
    * Collision detection is disabled if `collideEnabled` is false.
    */
   collideEnabled?: boolean;
+  collideTestProps?: {};
 };
 
 /** Allows layers to hide overlapping objects. */
@@ -28,11 +30,20 @@ export default class CollideExtension extends LayerExtension {
   /* eslint-disable camelcase */
   draw(this: Layer<CollideExtensionProps>, {uniforms, context, moduleParameters}: any) {
     const {collideEnabled = true} = this.props;
-    const {haveCollideLayers} = moduleParameters;
+    const {drawToCollideMap, haveCollideLayers} = moduleParameters;
     if (haveCollideLayers && collideEnabled) {
       uniforms.collide_enabled = true;
     } else {
       uniforms.collide_enabled = false;
+    }
+
+    if (drawToCollideMap) {
+      this.props = {
+        // @ts-ignore
+        ...this.constructor.defaultProps,
+        ...this.props,
+        ...this.props.collideTestProps
+      };
     }
   }
 
