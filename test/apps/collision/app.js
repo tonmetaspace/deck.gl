@@ -48,33 +48,23 @@ export default function App() {
     onClick: ({object}) => console.log(object.properties)
   };
 
-  const pointsProps = {
-    ...props,
-    data: PLACES,
-    pointType: 'circle',
-    getText: f => f.properties.name,
-    getTextColor: [0, 0, 0],
-    getTextSize: 18
-  };
+  const pointsProps = {};
 
   const points = [
     new GeoJsonLayer({
       id: 'collide-points',
+      data: PLACES,
+      pointType: 'circle',
+      ...props,
+
       extensions: [new CollideExtension()],
       collideEnabled,
-      // operation: OPERATION.COLLIDE,
       getCollidePriority: d => -d.properties.scalerank,
-      pointAntialiasing: false,
-      ...pointsProps
-      // getPointRadius: 2 * pointsProps.getPointRadius // Enlarge point to increase hit area
+      collideTestProps: {
+        pointAntialiasing: false, // Does this matter for collisions?
+        radiusScale: 2 // Enlarge point to increase hit area
+      }
     })
-    // new GeoJsonLayer({
-    //   id: 'points',
-    //   extensions: [new CollideExtension()],
-    //   collideEnabled,
-    //   parameters: {depthTest: false},
-    //   ...pointsProps
-    // })
   ];
 
   const labelsProps = {
