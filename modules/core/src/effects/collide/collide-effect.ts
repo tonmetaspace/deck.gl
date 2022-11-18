@@ -51,7 +51,7 @@ export default class CollideEffect implements Effect {
       // TODO - support multiple contexts
       this.programManager = ProgramManager.getDefaultProgramManager(gl);
       if (collide) {
-        this.programManager.addDefaultModule(collide);
+        // this.programManager.addDefaultModule(collide);
       }
     }
 

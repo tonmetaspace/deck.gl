@@ -3,6 +3,14 @@ import type {_ShaderModule as ShaderModule} from '@deck.gl/core';
 import type {Texture2D} from '@luma.gl/webgl';
 
 const vs = `
+#ifdef NON_INSTANCED_MODEL
+attribute float collidePriorities;
+#else
+attribute float instanceCollidePriorities;
+#endif
+
+uniform bool collide_sort;
+
 vec2 collide_getCoords(vec4 position) {
   vec4 collide_clipspace = project_common_position_to_clipspace(position);
   return (1.0 + collide_clipspace.xy / collide_clipspace.w) / 2.0;
@@ -81,6 +89,16 @@ varying vec3 collide_pickingColor;
    collide_texCoords = collide_getCoords(collide_common_position);
    collide_pickingColor = geometry.pickingColor / 255.0;
 `,
+  'vs:DECKGL_FILTER_GL_POSITION': `
+   if (collide_sort) {
+     #ifdef NON_INSTANCED_MODEL
+     float collidePriority = collidePriorities;
+     #else
+     float collidePriority = instanceCollidePriorities;
+     #endif
+     position.z = 0.001 * collidePriority * position.w; // Support range -1000 -> 1000
+   }
+  `,
   'fs:#decl': `
 varying vec2 collide_texCoords;
 varying vec3 collide_pickingColor;
