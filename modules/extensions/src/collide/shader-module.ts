@@ -122,7 +122,7 @@ varying vec3 collide_pickingColor;
 };
 
 export default {
-  name: 'collide-read',
+  name: 'collide',
   dependencies: [project],
   vs,
   fs,
