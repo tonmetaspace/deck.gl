@@ -7,7 +7,8 @@ import type {Layer, LayerContext} from '@deck.gl/core';
 const defaultProps = {
   getCollidePriority: {type: 'accessor', value: 0},
   collideEnabled: true,
-  collideTestProps: {}
+  collideTestProps: {},
+  collideGroup: 'default'
 };
 
 export type CollideExtensionProps = {
@@ -20,6 +21,11 @@ export type CollideExtensionProps = {
    * Props to override when rendering collision map
    */
   collideTestProps?: {};
+
+  /**
+   * Collision group this layer belongs to
+   */
+  collideGroup: string;
 };
 
 /** Allows layers to hide overlapping objects. */

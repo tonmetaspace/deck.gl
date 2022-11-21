@@ -7,11 +7,18 @@ import type {Effect, PreRenderOptions} from '../../lib/effect';
 import type Layer from '../../lib/layer';
 import type Viewport from '../../viewports/viewport';
 
+type CollideExtensionProps = {
+  collideEnabled?: boolean;
+  collideTestProps?: {};
+  collideGroup: string;
+};
+
 // Factor by which to downscale Collide FBO relative to canvas
 const DOWNSCALE = 2;
 
 type RenderInfo = {
-  layers: Layer[];
+  collideGroup: string;
+  layers: Layer<CollideExtensionProps>[];
   layerBounds: ([number[], number[]] | null)[];
 };
 
@@ -22,6 +29,7 @@ export default class CollideEffect implements Effect {
   useInPicking = true;
 
   private oldRenderInfo: RenderInfo | null = null;
+  private channels: (RenderInfo | null)[] = [];
   private haveCollideLayers: Boolean = false;
   private collidePass?: CollidePass;
   private collideMap?: Texture2D;
@@ -37,7 +45,7 @@ export default class CollideEffect implements Effect {
         visible &&
         extensions.find(e => e.constructor.extensionName === 'CollideExtension') &&
         collideEnabled
-    );
+    ) as Layer<CollideExtensionProps>[];
     if (collideLayers.length === 0) {
       this.haveCollideLayers = false;
       this.oldRenderInfo = null;
@@ -52,7 +60,8 @@ export default class CollideEffect implements Effect {
     }
 
     // Collect layers to render
-    const renderInfo = {layerBounds: collideLayers.map(l => l.getBounds()), layers: collideLayers};
+    // const renderInfo = {layerBounds: collideLayers.map(l => l.getBounds()), layers: collideLayers};
+    const renderInfo = this._groupByCollideGroup(collideLayers).default;
     if (!this.oldRenderInfo) {
       this.oldRenderInfo = renderInfo;
     }
@@ -103,7 +112,7 @@ export default class CollideEffect implements Effect {
     if (renderInfoUpdated || viewportChanged) {
       this.lastViewport = viewport;
 
-      // Rerender mask FBO
+      // Rerender collide FBO
       // @ts-ignore (2532) This method is only called from preRender where collidePass is defined
       this.collidePass.render({
         pass: 'collide',
@@ -117,6 +126,34 @@ export default class CollideEffect implements Effect {
         }
       });
     }
+  }
+
+  /**
+   * Group layers by collideGroup
+   * Returns a map from collideGroup to render info
+   */
+  private _groupByCollideGroup(
+    collideLayers: Layer<CollideExtensionProps>[]
+  ): Record<string, RenderInfo> {
+    const channelMap = {};
+    let channelCount = 0;
+    for (const layer of collideLayers) {
+      const {collideGroup = 'default'} = layer.props;
+      let channelInfo = channelMap[collideGroup];
+      if (!channelInfo) {
+        channelInfo = {
+          collideGroup,
+          index: this.channels.findIndex(c => c?.collideGroup === collideGroup),
+          layers: [],
+          layerBounds: []
+        };
+        channelMap[collideGroup] = channelInfo;
+      }
+      channelInfo.layers.push(layer);
+      channelInfo.layerBounds.push(layer.getBounds());
+    }
+
+    return channelMap;
   }
 
   getModuleParameters(): {collideMap: Texture2D; haveCollideLayers: Boolean} {
