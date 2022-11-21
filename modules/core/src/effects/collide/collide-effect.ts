@@ -30,7 +30,7 @@ export default class CollideEffect implements Effect {
 
   private oldRenderInfo: RenderInfo | null = null;
   private channels: (RenderInfo | null)[] = [];
-  private haveCollideLayers: Boolean = false;
+  private collideGroups: string[] = [];
   private collidePass?: CollidePass;
   private collideMap?: Texture2D;
   private lastViewport?: Viewport;
@@ -47,11 +47,10 @@ export default class CollideEffect implements Effect {
         collideEnabled
     ) as Layer<CollideExtensionProps>[];
     if (collideLayers.length === 0) {
-      this.haveCollideLayers = false;
+      this.collideGroups = [];
       this.oldRenderInfo = null;
       return;
     }
-    this.haveCollideLayers = true;
 
     // TODO need multiple passes here for independent layers
     if (!this.collidePass) {
@@ -61,7 +60,10 @@ export default class CollideEffect implements Effect {
 
     // Collect layers to render
     // const renderInfo = {layerBounds: collideLayers.map(l => l.getBounds()), layers: collideLayers};
-    const renderInfo = this._groupByCollideGroup(collideLayers).default;
+    const channels = this._groupByCollideGroup(collideLayers);
+    this.collideGroups = Object.keys(channels);
+
+    const renderInfo = channels.default; // HACK
     if (!this.oldRenderInfo) {
       this.oldRenderInfo = renderInfo;
     }
@@ -156,10 +158,10 @@ export default class CollideEffect implements Effect {
     return channelMap;
   }
 
-  getModuleParameters(): {collideMap: Texture2D; haveCollideLayers: Boolean} {
+  getModuleParameters(): {collideMap: Texture2D; collideGroups: string[]} {
     return {
       collideMap: this.collideMap,
-      haveCollideLayers: this.haveCollideLayers
+      collideGroups: this.collideGroups
     };
   }
 
@@ -171,7 +173,7 @@ export default class CollideEffect implements Effect {
     }
 
     this.lastViewport = undefined;
-    this.haveCollideLayers = false;
+    this.collideGroups = [];
     this.oldRenderInfo = null;
   }
 
