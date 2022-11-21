@@ -7,10 +7,11 @@ import type {LayersPassRenderOptions} from './layers-pass';
 type CollidePassRenderOptions = LayersPassRenderOptions & {};
 
 export default class CollidePass extends LayersPass {
+  static dummyCollideMap = null;
+
   collideMap: Texture2D;
   depthBuffer: Renderbuffer;
   fbo: Framebuffer;
-  dummyMap: Texture2D;
 
   constructor(gl, props: {id: string}) {
     super(gl, props);
@@ -40,7 +41,9 @@ export default class CollidePass extends LayersPass {
       }
     });
 
-    this.dummyMap = new Texture2D(gl, {width: 1, height: 1});
+    if (!CollidePass.dummyCollideMap) {
+      CollidePass.dummyCollideMap = new Texture2D(gl, {width: 1, height: 1});
+    }
   }
 
   render(options: CollidePassRenderOptions) {
@@ -75,7 +78,7 @@ export default class CollidePass extends LayersPass {
     return {
       drawToCollideMap: true,
       // To avoid feedback loop forming between Framebuffer and active Texture.
-      collideMap: this.dummyMap,
+      dummyCollideMap: CollidePass.dummyCollideMap,
       pickingActive: 1,
       pickingAttribute: false,
       lightSources: {}
