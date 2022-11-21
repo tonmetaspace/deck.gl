@@ -31,7 +31,7 @@ export default class CollideEffect implements Effect {
   private oldRenderInfo: RenderInfo | null = null;
   private channels: (RenderInfo | null)[] = [];
   private collideGroups: string[] = [];
-  private collidePass?: CollidePass;
+  private collidePasses: Record<string, CollidePass> = {};
   private lastViewport?: Viewport;
 
   preRender(
@@ -51,15 +51,14 @@ export default class CollideEffect implements Effect {
       return;
     }
 
-    // TODO need multiple passes here for independent layers
-    if (!this.collidePass) {
-      this.collidePass = new CollidePass(gl, {id: 'default-collide'});
-    }
-
     // Collect layers to render
-    // const renderInfo = {layerBounds: collideLayers.map(l => l.getBounds()), layers: collideLayers};
     const channels = this._groupByCollideGroup(collideLayers);
     this.collideGroups = Object.keys(channels);
+    for (const collideGroup of this.collideGroups) {
+      if (!this.collidePasses[collideGroup]) {
+        this.collidePasses[collideGroup] = new CollidePass(gl, {id: collideGroup});
+      }
+    }
 
     const renderInfo = channels.default; // HACK
     if (!this.oldRenderInfo) {
@@ -69,13 +68,15 @@ export default class CollideEffect implements Effect {
     const viewport = viewports[0];
     const viewportChanged = !this.lastViewport || !this.lastViewport.equals(viewport);
 
-    // Resize framebuffer to match canvas
-    this.collidePass.fbo.resize({
-      width: gl.canvas.width / DOWNSCALE,
-      height: gl.canvas.height / DOWNSCALE
-    });
+    // Resize framebuffers to match canvas
+    for (const collidePass of Object.values(this.collidePasses)) {
+      collidePass.fbo.resize({
+        width: gl.canvas.width / DOWNSCALE,
+        height: gl.canvas.height / DOWNSCALE
+      });
+    }
     this._render(renderInfo, {layerFilter, onViewportActive, views, viewport, viewportChanged});
-    this._debug();
+    //this._debug(coll);
   }
 
   private _render(
@@ -111,10 +112,11 @@ export default class CollideEffect implements Effect {
 
     if (renderInfoUpdated || viewportChanged) {
       this.lastViewport = viewport;
+      const collidePass = this.collidePasses[renderInfo.collideGroup];
 
       // Rerender collide FBO
       // @ts-ignore (2532) This method is only called from preRender where collidePass is defined
-      this.collidePass.render({
+      collidePass.render({
         pass: 'collide',
         layers: renderInfo.layers,
         layerFilter,
@@ -122,7 +124,7 @@ export default class CollideEffect implements Effect {
         onViewportActive,
         views,
         moduleParameters: {
-          devicePixelRatio: cssToDeviceRatio(this.collidePass!.gl) / DOWNSCALE
+          devicePixelRatio: cssToDeviceRatio(collidePass!.gl) / DOWNSCALE
         }
       });
     }
@@ -158,16 +160,16 @@ export default class CollideEffect implements Effect {
 
   getModuleParameters(): {collideMap: Texture2D; collideGroups: string[]} {
     return {
-      collideMap: this.collidePass?.collideMap,
+      collideMap: this.collidePasses?.default.collideMap,
       collideGroups: this.collideGroups
     };
   }
 
   cleanup(): void {
-    if (this.collidePass) {
-      this.collidePass.delete();
-      this.collidePass = undefined;
+    for (const collidePass of Object.values(this.collidePasses)) {
+      collidePass.delete();
     }
+    this.collidePasses = {};
 
     this.lastViewport = undefined;
     this.collideGroups = [];
@@ -175,9 +177,9 @@ export default class CollideEffect implements Effect {
   }
 
   // Debug show FBO contents on screen
-  _debug() {
+  _debug(collidePass) {
     const minimap = true;
-    const collideMap = this.collidePass?.collideMap;
+    const collideMap = collidePass.collideMap;
     const color = readPixelsToArray(collideMap);
     let canvas = document.getElementById('fbo-canvas') as HTMLCanvasElement;
     const canvasHeight = (minimap ? 2 : 1) * collideMap.height;
