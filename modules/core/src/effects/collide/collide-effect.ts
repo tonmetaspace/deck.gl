@@ -86,19 +86,19 @@ export default class CollideEffect implements Effect {
     }
   ) {
     const oldRenderInfo = this.channels[renderInfo.collideGroup];
-    // if (!oldRenderInfo) {
-    //   return;
-    // }
+    if (!oldRenderInfo) {
+      return;
+    }
 
-    const renderInfoUpdated = true;
-    // // If render info is new
-    // renderInfo === oldRenderInfo ||
-    // // If sublayers have changed
-    // oldRenderInfo.layers.length !== renderInfo.layers.length ||
-    // // If a sublayer's positions have been updated, the cached bounds will change shallowly
-    // renderInfo.layerBounds.some((b, i) => b !== oldRenderInfo.layerBounds[i]);
+    const renderInfoUpdated =
+      // If render info is new
+      renderInfo === oldRenderInfo ||
+      // If sublayers have changed
+      oldRenderInfo.layers.length !== renderInfo.layers.length ||
+      // If a sublayer's positions have been updated, the cached bounds will change shallowly
+      renderInfo.layerBounds.some((b, i) => b !== oldRenderInfo.layerBounds[i]);
 
-    // this.channels[renderInfo.collideGroup] = renderInfo;
+    this.channels[renderInfo.collideGroup] = renderInfo;
 
     if (renderInfoUpdated || viewportChanged) {
       this.lastViewport = viewport;
@@ -136,7 +136,6 @@ export default class CollideEffect implements Effect {
       if (!channelInfo) {
         channelInfo = {
           collideGroup,
-          index: this.channels.findIndex(c => c?.collideGroup === collideGroup),
           layers: [],
           layerBounds: []
         };
@@ -150,6 +149,7 @@ export default class CollideEffect implements Effect {
     for (const collideGroup of Object.keys(channelMap)) {
       if (!this.collidePasses[collideGroup]) {
         this.collidePasses[collideGroup] = new CollidePass(gl, {id: collideGroup});
+        this.channels[collideGroup] = channelMap[collideGroup];
       }
     }
     for (const [collideGroup, collidePass] of Object.entries(this.collidePasses)) {
