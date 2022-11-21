@@ -4,7 +4,7 @@ import {render} from 'react-dom';
 import {StaticMap} from 'react-map-gl';
 import DeckGL from '@deck.gl/react';
 import {COORDINATE_SYSTEM, OPERATION} from '@deck.gl/core';
-import {GeoJsonLayer, ScatterplotLayer, SolidPolygonLayer} from '@deck.gl/layers';
+import {GeoJsonLayer, ScatterplotLayer, TextLayer} from '@deck.gl/layers';
 import {CollideExtension} from '@deck.gl/extensions';
 import {CartoLayer, setDefaultCredentials, MAP_TYPES} from '@deck.gl/carto';
 import {parse} from '@loaders.gl/core';
@@ -44,7 +44,7 @@ export default function App() {
     pointRadiusUnits: 'pixels',
     getPointRadius: 8,
     getFillColor: d => [25 * d.properties.scalerank, 255 - 25 * d.properties.scalerank, 123],
-    pickable: true,
+    pickable: true, // TODO Currently required!!!!!
     onClick: ({object}) => console.log(object.properties)
   };
 
@@ -69,14 +69,15 @@ export default function App() {
   ];
 
   const labels = [
-    new GeoJsonLayer({
+    new TextLayer({
       id: 'collide-labels',
       data: AIR_PORTS,
+      dataTransform: d => d.features,
 
-      pointType: 'text',
       getText: f => f.properties.name,
-      getTextColor: [0, 155, 0],
-      getTextSize: 24,
+      getColor: [0, 155, 0],
+      getSize: 24,
+      getPosition: f => f.geometry.coordinates,
       ...props,
 
       extensions: [new CollideExtension()],
