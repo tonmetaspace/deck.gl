@@ -42,10 +42,10 @@ export default class CollideExtension extends LayerExtension {
     const {collideGroup = defaultProps.collideGroup} = this.props;
     const {drawToCollideMap, collideGroups = []} = moduleParameters;
     uniforms.collide_enabled = collideGroups.includes(collideGroup);
-    uniforms.collide_texture = moduleParameters.collideMap;
 
     if (drawToCollideMap) {
       uniforms.collide_sort = 'getCollidePriority' in this.props;
+      uniforms.collide_texture = moduleParameters.collideMap;
 
       // Override any props with those defined in collideTestProps
       this.props = {
@@ -56,6 +56,7 @@ export default class CollideExtension extends LayerExtension {
       };
     } else {
       uniforms.collide_sort = false;
+      uniforms.collide_texture = moduleParameters.collideMaps[collideGroup];
     }
   }
 

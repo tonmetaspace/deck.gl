@@ -159,11 +159,12 @@ export default class CollideEffect implements Effect {
     return channelMap;
   }
 
-  getModuleParameters(): {collideMap: Texture2D; collideGroups: string[]} {
-    return {
-      collideMap: this.collidePasses?.default.collideMap,
-      collideGroups: this.collideGroups
-    };
+  getModuleParameters(): {collideMaps: Record<string, Texture2D>; collideGroups: string[]} {
+    const collideMaps = {};
+    for (const collideGroup in this.collidePasses) {
+      collideMaps[collideGroup] = this.collidePasses[collideGroup].collideMap;
+    }
+    return {collideMaps, collideGroups: this.collideGroups};
   }
 
   cleanup(): void {
