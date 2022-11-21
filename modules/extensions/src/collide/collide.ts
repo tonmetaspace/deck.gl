@@ -40,7 +40,8 @@ export default class CollideExtension extends LayerExtension {
   /* eslint-disable camelcase */
   draw(this: Layer<CollideExtensionProps>, {uniforms, context, moduleParameters}: any) {
     const {collideGroup = defaultProps.collideGroup} = this.props;
-    const {drawToCollideMap, collideGroups = []} = moduleParameters;
+    const {drawToCollideMap, collideMaps = {}} = moduleParameters;
+    const collideGroups = Object.keys(collideMaps);
     uniforms.collide_enabled = collideGroups.includes(collideGroup);
 
     if (drawToCollideMap) {

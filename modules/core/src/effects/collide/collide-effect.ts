@@ -28,7 +28,6 @@ export default class CollideEffect implements Effect {
   props = null;
   useInPicking = true;
 
-  private oldRenderInfo: RenderInfo | null = null;
   private channels: (RenderInfo | null)[] = [];
   private collideGroups: string[] = [];
   private collidePasses: Record<string, CollidePass> = {};
@@ -48,7 +47,6 @@ export default class CollideEffect implements Effect {
     if (collideLayers.length === 0) {
       this.collideGroups = [];
       this.channels.length = 0;
-      this.oldRenderInfo = null;
       return;
     }
 
@@ -75,9 +73,9 @@ export default class CollideEffect implements Effect {
       this._render(renderInfo, {layerFilter, onViewportActive, views, viewport, viewportChanged});
     }
 
-    if (this.collideGroups.includes('labels')) {
-      this._debug(this.collidePasses.labels);
-    }
+    // if (this.collideGroups.includes('default')) {
+    //   this._debug(this.collidePasses.default);
+    // }
   }
 
   private _render(
@@ -159,23 +157,22 @@ export default class CollideEffect implements Effect {
     return channelMap;
   }
 
-  getModuleParameters(): {collideMaps: Record<string, Texture2D>; collideGroups: string[]} {
+  getModuleParameters(): {collideMaps: Record<string, Texture2D>} {
     const collideMaps = {};
     for (const collideGroup in this.collidePasses) {
       collideMaps[collideGroup] = this.collidePasses[collideGroup].collideMap;
     }
-    return {collideMaps, collideGroups: this.collideGroups};
+    return {collideMaps};
   }
 
   cleanup(): void {
+    this.channels = [];
+    this.collideGroups = [];
     for (const collidePass of Object.values(this.collidePasses)) {
       collidePass.delete();
     }
     this.collidePasses = {};
-
     this.lastViewport = undefined;
-    this.collideGroups = [];
-    this.oldRenderInfo = null;
   }
 
   // Debug show FBO contents on screen
