@@ -49,12 +49,7 @@ export default class CollideEffect implements Effect {
     }
 
     // Collect layers to render
-    const channels = this._groupByCollideGroup(collideLayers);
-    for (const collideGroup of Object.keys(channels)) {
-      if (!this.collidePasses[collideGroup]) {
-        this.collidePasses[collideGroup] = new CollidePass(gl, {id: collideGroup});
-      }
-    }
+    const channels = this._groupByCollideGroup(gl, collideLayers);
 
     const viewport = viewports[0];
     const viewportChanged = !this.lastViewport || !this.lastViewport.equals(viewport);
@@ -130,6 +125,7 @@ export default class CollideEffect implements Effect {
    * Returns a map from collideGroup to render info
    */
   private _groupByCollideGroup(
+    gl: WebGLRenderingContext,
     collideLayers: Layer<CollideExtensionProps>[]
   ): Record<string, RenderInfo> {
     const channelMap = {};
@@ -148,6 +144,19 @@ export default class CollideEffect implements Effect {
       }
       channelInfo.layers.push(layer);
       channelInfo.layerBounds.push(layer.getBounds());
+    }
+
+    // Create any new passes and remove any old ones
+    for (const collideGroup of Object.keys(channelMap)) {
+      if (!this.collidePasses[collideGroup]) {
+        this.collidePasses[collideGroup] = new CollidePass(gl, {id: collideGroup});
+      }
+    }
+    for (const [collideGroup, collidePass] of Object.entries(this.collidePasses)) {
+      if (!channelMap[collideGroup]) {
+        collidePass.delete();
+        delete this.collidePasses[collideGroup];
+      }
     }
 
     return channelMap;
