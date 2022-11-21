@@ -82,6 +82,7 @@ export default function App() {
       extensions: [new CollideExtension()],
       collideEnabled,
       getCollidePriority: d => -d.properties.scalerank,
+      collideGroup: 'labels',
       collideTestProps: {
         sizeScale: 2 // Enlarge text to increase hit area
       }

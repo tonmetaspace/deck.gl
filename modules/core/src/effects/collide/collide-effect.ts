@@ -47,6 +47,7 @@ export default class CollideEffect implements Effect {
     ) as Layer<CollideExtensionProps>[];
     if (collideLayers.length === 0) {
       this.collideGroups = [];
+      this.channels.length = 0;
       this.oldRenderInfo = null;
       return;
     }
@@ -60,23 +61,23 @@ export default class CollideEffect implements Effect {
       }
     }
 
-    const renderInfo = channels.default; // HACK
-    if (!this.oldRenderInfo) {
-      this.oldRenderInfo = renderInfo;
-    }
-
     const viewport = viewports[0];
     const viewportChanged = !this.lastViewport || !this.lastViewport.equals(viewport);
 
     // Resize framebuffers to match canvas
-    for (const collidePass of Object.values(this.collidePasses)) {
+    for (const collideGroup in channels) {
+      const collidePass = this.collidePasses[collideGroup];
+      const renderInfo = channels[collideGroup];
       collidePass.fbo.resize({
         width: gl.canvas.width / DOWNSCALE,
         height: gl.canvas.height / DOWNSCALE
       });
+      this._render(renderInfo, {layerFilter, onViewportActive, views, viewport, viewportChanged});
     }
-    this._render(renderInfo, {layerFilter, onViewportActive, views, viewport, viewportChanged});
-    //this._debug(coll);
+
+    if (this.collideGroups.includes('labels')) {
+      this._debug(this.collidePasses.labels);
+    }
   }
 
   private _render(
@@ -95,20 +96,20 @@ export default class CollideEffect implements Effect {
       viewportChanged: boolean;
     }
   ) {
-    const oldRenderInfo = this.oldRenderInfo;
-    if (!oldRenderInfo) {
-      return;
-    }
+    const oldRenderInfo = this.channels[renderInfo.collideGroup];
+    // if (!oldRenderInfo) {
+    //   return;
+    // }
 
-    const renderInfoUpdated =
-      // If render info is new
-      renderInfo === oldRenderInfo ||
-      // If sublayers have changed
-      oldRenderInfo.layers.length !== renderInfo.layers.length ||
-      // If a sublayer's positions have been updated, the cached bounds will change shallowly
-      renderInfo.layerBounds.some((b, i) => b !== oldRenderInfo.layerBounds[i]);
+    const renderInfoUpdated = true;
+    // // If render info is new
+    // renderInfo === oldRenderInfo ||
+    // // If sublayers have changed
+    // oldRenderInfo.layers.length !== renderInfo.layers.length ||
+    // // If a sublayer's positions have been updated, the cached bounds will change shallowly
+    // renderInfo.layerBounds.some((b, i) => b !== oldRenderInfo.layerBounds[i]);
 
-    this.oldRenderInfo = renderInfo;
+    // this.channels[renderInfo.collideGroup] = renderInfo;
 
     if (renderInfoUpdated || viewportChanged) {
       this.lastViewport = viewport;
