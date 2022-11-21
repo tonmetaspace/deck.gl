@@ -32,7 +32,6 @@ export default class CollideEffect implements Effect {
   private channels: (RenderInfo | null)[] = [];
   private collideGroups: string[] = [];
   private collidePass?: CollidePass;
-  private collideMap?: Texture2D;
   private lastViewport?: Viewport;
 
   preRender(
@@ -55,7 +54,6 @@ export default class CollideEffect implements Effect {
     // TODO need multiple passes here for independent layers
     if (!this.collidePass) {
       this.collidePass = new CollidePass(gl, {id: 'default-collide'});
-      this.collideMap = this.collidePass.collideMap;
     }
 
     // Collect layers to render
@@ -160,7 +158,7 @@ export default class CollideEffect implements Effect {
 
   getModuleParameters(): {collideMap: Texture2D; collideGroups: string[]} {
     return {
-      collideMap: this.collideMap,
+      collideMap: this.collidePass?.collideMap,
       collideGroups: this.collideGroups
     };
   }
@@ -169,7 +167,6 @@ export default class CollideEffect implements Effect {
     if (this.collidePass) {
       this.collidePass.delete();
       this.collidePass = undefined;
-      this.collideMap = undefined;
     }
 
     this.lastViewport = undefined;
@@ -180,9 +177,10 @@ export default class CollideEffect implements Effect {
   // Debug show FBO contents on screen
   _debug() {
     const minimap = true;
-    const color = readPixelsToArray(this.collideMap);
+    const collideMap = this.collidePass?.collideMap;
+    const color = readPixelsToArray(collideMap);
     let canvas = document.getElementById('fbo-canvas') as HTMLCanvasElement;
-    const canvasHeight = (minimap ? 2 : 1) * this.collideMap.height;
+    const canvasHeight = (minimap ? 2 : 1) * collideMap.height;
     if (!canvas) {
       canvas = document.createElement('canvas');
       canvas.id = 'fbo-canvas';
@@ -194,8 +192,8 @@ export default class CollideEffect implements Effect {
       canvas.style.transform = 'scaleY(-1)';
       document.body.appendChild(canvas);
     }
-    if (canvas.width !== this.collideMap.width || canvas.height !== canvasHeight) {
-      canvas.width = this.collideMap.width;
+    if (canvas.width !== collideMap.width || canvas.height !== canvasHeight) {
+      canvas.width = collideMap.width;
       canvas.height = canvasHeight;
       canvas.style.width = `${0.125 * DOWNSCALE * canvas.width}px`; // Fit with 80% width #app
     }
