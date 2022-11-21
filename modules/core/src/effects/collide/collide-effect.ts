@@ -29,7 +29,6 @@ export default class CollideEffect implements Effect {
   useInPicking = true;
 
   private channels: (RenderInfo | null)[] = [];
-  private collideGroups: string[] = [];
   private collidePasses: Record<string, CollidePass> = {};
   private lastViewport?: Viewport;
 
@@ -45,15 +44,13 @@ export default class CollideEffect implements Effect {
         collideEnabled
     ) as Layer<CollideExtensionProps>[];
     if (collideLayers.length === 0) {
-      this.collideGroups = [];
       this.channels.length = 0;
       return;
     }
 
     // Collect layers to render
     const channels = this._groupByCollideGroup(collideLayers);
-    this.collideGroups = Object.keys(channels);
-    for (const collideGroup of this.collideGroups) {
+    for (const collideGroup of Object.keys(channels)) {
       if (!this.collidePasses[collideGroup]) {
         this.collidePasses[collideGroup] = new CollidePass(gl, {id: collideGroup});
       }
@@ -73,9 +70,8 @@ export default class CollideEffect implements Effect {
       this._render(renderInfo, {layerFilter, onViewportActive, views, viewport, viewportChanged});
     }
 
-    // if (this.collideGroups.includes('default')) {
-    //   this._debug(this.collidePasses.default);
-    // }
+    // const pass = this.collidePasses.labels;
+    // if (pass) this._debug(pass);
   }
 
   private _render(
@@ -167,7 +163,6 @@ export default class CollideEffect implements Effect {
 
   cleanup(): void {
     this.channels = [];
-    this.collideGroups = [];
     for (const collidePass of Object.values(this.collidePasses)) {
       collidePass.delete();
     }
