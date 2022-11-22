@@ -20,11 +20,12 @@ vec2 collide_getCoords(vec4 position) {
 const fs = `
 uniform sampler2D collide_texture;
 uniform bool collide_enabled;
+uniform vec2 project_uViewportSize;
 
 float match(vec2 tex, vec3 pickingColor) {
   vec4 collide_pickingColor = texture2D(collide_texture, tex);
-  float delta = distance(collide_pickingColor.rgb, pickingColor);
-  float e = 0.000001;
+  float delta = dot(abs(collide_pickingColor.rgb - pickingColor), vec3(1.0));
+  float e = 0.001;
   return step(delta, e);
 }
 
@@ -33,20 +34,22 @@ float collide_isInBounds(vec2 texCoords, vec3 pickingColor) {
     return 1.0;
   }
 
-  float accumulator = 0.0;
-  float step = 2.0 * (1.0 / 2048.0);
-
-  // Visibility test
+  // Visibility test, sample area of 5x5 pixels in order to fade in/out.
+  // Due to the locality, the lookups will be cached
+  // This reduces the flicker present when objects are shown/hidden
   const int N = 2;
+  float accumulator = 0.0;
+  vec2 step = vec2(1.0 / project_uViewportSize);
+
   const float floatN = float(N);
-  vec2 delta = -floatN * vec2(step, step);
+  vec2 delta = -floatN * step;
   for(int i = -N; i <= N; i++) {
-    delta.x = -step * floatN;
+    delta.x = -step.x * floatN;
     for(int j = -N; j <= N; j++) {
       accumulator += match(texCoords + delta, pickingColor);
-      delta.x += step;
+      delta.x += step.x;
     }
-    delta.y += step;
+    delta.y += step.y;
   }
 
   float W = 2.0 * floatN + 1.0;
@@ -91,7 +94,7 @@ varying vec3 collide_pickingColor;
 
     // Fade out
     gl_FragColor.a *= collide_visible;
-    if (collide_visible < 0.01) discard;
+    if (collide_visible < 0.0001) discard;
   }
 `
 };
