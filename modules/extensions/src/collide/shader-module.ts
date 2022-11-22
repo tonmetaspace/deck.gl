@@ -33,49 +33,24 @@ float collide_isInBounds(vec2 texCoords, vec3 pickingColor) {
     return 1.0;
   }
 
-  float O = 0.0;
-  vec2 dx = 2.0 * vec2(1.0 / 2048.0, 0.0);
-  vec2 dy = dx.yx;
+  float accumulator = 0.0;
+  float step = 2.0 * (1.0 / 2048.0);
 
   // Visibility test
-  vec2 dd = -2.0 * dy;
-  O += match(texCoords + 2.0 * dx + dd, pickingColor);
-  O += match(texCoords + dx + dd , pickingColor);
-  O += match(texCoords + dd, pickingColor);
-  O += match(texCoords - dx + dd, pickingColor);
-  O += match(texCoords - 2.0 * dx + dd, pickingColor);
+  const int N = 2;
+  const float floatN = float(N);
+  vec2 delta = -floatN * vec2(step, step);
+  for(int i = -N; i <= N; i++) {
+    delta.x = -step * floatN;
+    for(int j = -N; j <= N; j++) {
+      accumulator += match(texCoords + delta, pickingColor);
+      delta.x += step;
+    }
+    delta.y += step;
+  }
 
-  dd = -1.0 * dy;
-  O += match(texCoords + 2.0 * dx + dd, pickingColor);
-  O += match(texCoords + dx + dd , pickingColor);
-  O += match(texCoords + dd, pickingColor);
-  O += match(texCoords - dx + dd, pickingColor);
-  O += match(texCoords - 2.0 * dx + dd, pickingColor);
-
-  dd = 0.0 * dy;
-  O += match(texCoords + 2.0 * dx + dd, pickingColor);
-  O += match(texCoords + dx + dd , pickingColor);
-  O += match(texCoords + dd, pickingColor);
-  O += match(texCoords - dx + dd, pickingColor);
-  O += match(texCoords - 2.0 * dx + dd, pickingColor);
-
-  dd = 1.0 * dy;
-  O += match(texCoords + 2.0 * dx + dd, pickingColor);
-  O += match(texCoords + dx + dd , pickingColor);
-  O += match(texCoords + dd, pickingColor);
-  O += match(texCoords - dx + dd, pickingColor);
-  O += match(texCoords - 2.0 * dx + dd, pickingColor);
-
-  dd = 2.0 * dy;
-  O += match(texCoords + 2.0 * dx + dd, pickingColor);
-  O += match(texCoords + dx + dd , pickingColor);
-  O += match(texCoords + dd, pickingColor);
-  O += match(texCoords - dx + dd, pickingColor);
-  O += match(texCoords - 2.0 * dx + dd, pickingColor);
-
-  O = O / 25.0;
-
-  return pow(O, 2.2);
+  float W = 2.0 * floatN + 1.0;
+  return pow(accumulator / (W * W), 2.2);
 }
 `;
 
