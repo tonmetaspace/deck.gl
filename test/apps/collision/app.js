@@ -48,73 +48,62 @@ export default function App() {
     onClick: ({object}) => console.log(object.properties)
   };
 
-  const pointsProps = {};
+  const points = new GeoJsonLayer({
+    id: 'points',
+    data: PLACES,
 
-  const points = [
-    new GeoJsonLayer({
-      id: 'points',
-      data: PLACES,
+    pointType: 'circle',
+    ...props,
 
-      pointType: 'circle',
-      ...props,
+    extensions: [new CollideExtension()],
+    collideEnabled,
+    getCollidePriority: d => -d.properties.scalerank,
+    collideTestProps: {
+      pointAntialiasing: false, // Does this matter for collisions?
+      radiusScale: 2 // Enlarge point to increase hit area
+    }
+  });
+  const labels = new TextLayer({
+    id: 'collide-labels',
+    data: AIR_PORTS,
+    dataTransform: d => d.features,
 
-      extensions: [new CollideExtension()],
-      collideEnabled,
-      getCollidePriority: d => -d.properties.scalerank,
-      collideTestProps: {
-        pointAntialiasing: false, // Does this matter for collisions?
-        radiusScale: 2 // Enlarge point to increase hit area
-      }
-    })
-  ];
+    getText: f => f.properties.name,
+    getColor: [0, 155, 0],
+    getSize: 24,
+    getPosition: f => f.geometry.coordinates,
+    ...props,
 
-  const labels = [
-    new TextLayer({
-      id: 'collide-labels',
-      data: AIR_PORTS,
-      dataTransform: d => d.features,
+    extensions: [new CollideExtension()],
+    collideEnabled,
+    getCollidePriority: d => -d.properties.scalerank,
+    collideGroup: 'labels',
+    collideTestProps: {
+      sizeScale: 2 // Enlarge text to increase hit area
+    }
+  });
+  const carto = new CartoLayer({
+    id: 'places',
+    connection: 'bigquery',
+    type: MAP_TYPES.TABLE,
+    data: 'cartobq.public_account.populated_places',
 
-      getText: f => f.properties.name,
-      getColor: [0, 155, 0],
-      getSize: 24,
-      getPosition: f => f.geometry.coordinates,
-      ...props,
+    getFillColor: [200, 0, 80],
+    pointType: 'text',
+    getText: f => f.properties.name,
+    getTextColor: [0, 0, 0],
+    getTextSize: 12,
+    pickable: true,
+    parameters: {depthTest: false},
 
-      extensions: [new CollideExtension()],
-      collideEnabled,
-      getCollidePriority: d => -d.properties.scalerank,
-      collideGroup: 'labels',
-      collideTestProps: {
-        sizeScale: 2 // Enlarge text to increase hit area
-      }
-    })
-  ];
-
-  const carto = [
-    new CartoLayer({
-      id: 'places',
-      connection: 'bigquery',
-      type: MAP_TYPES.TABLE,
-      data: 'cartobq.public_account.populated_places',
-
-      getFillColor: [200, 0, 80],
-      pointType: 'text',
-      getText: f => f.properties.name,
-      getTextColor: [0, 0, 0],
-      getTextSize: 12,
-      pickable: true,
-      parameters: {depthTest: false},
-
-      extensions: [new CollideExtension()],
-      collideEnabled,
-      // TODO interlayer priority not working
-      getCollidePriority: 0,
-      collideTestProps: {
-        sizeScale: 2 // Enlarge text to increase hit area
-      }
-    })
-  ];
-
+    extensions: [new CollideExtension()],
+    collideEnabled,
+    // TODO interlayer priority not working
+    getCollidePriority: 0,
+    collideTestProps: {
+      sizeScale: 2 // Enlarge text to increase hit area
+    }
+  });
   const viewState = {
     longitude: 60,
     latitude: 40,
@@ -124,16 +113,11 @@ export default function App() {
     bearing: 0
   };
 
+  const layers = [showCarto && carto, showPoints && points, showLabels && labels];
+
   return (
     <>
-      <DeckGL
-        layers={[]
-          .concat(showCarto ? carto : [])
-          .concat(showPoints ? points : [])
-          .concat(showLabels ? labels : [])}
-        initialViewState={viewState}
-        controller={true}
-      >
+      <DeckGL layers={layers} initialViewState={viewState} controller={true}>
         <StaticMap reuseMaps mapStyle={MAP_STYLE} preventStyleDiffing={true} />
       </DeckGL>
       <div style={{left: 200, position: 'absolute', background: 'white', padding: 10}}>
