@@ -50,8 +50,9 @@ export default class EffectManager {
 
     this._internalEffects = effects.slice();
     // Unique CollideEffect & MaskEffect per EffectManager as GL context may be different
-    this._internalEffects.push(new CollideEffect());
     this._internalEffects.push(new MaskEffect());
+    // Must come after mask effect
+    this._internalEffects.push(new CollideEffect());
     if (!effects.some(effect => effect instanceof LightingEffect)) {
       this._internalEffects.push(DEFAULT_LIGHTING_EFFECT);
     }

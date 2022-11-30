@@ -34,7 +34,7 @@ export default class CollideEffect implements Effect {
 
   preRender(
     gl: WebGLRenderingContext,
-    {layers, layerFilter, viewports, onViewportActive, views}: PreRenderOptions
+    {effects: allEffects, layers, layerFilter, viewports, onViewportActive, views}: PreRenderOptions
   ): void {
     const collideLayers = layers.filter(
       // @ts-ignore
@@ -48,11 +48,17 @@ export default class CollideEffect implements Effect {
       return;
     }
 
+    const effects = allEffects?.filter(({useInCollide}) => useInCollide);
+    const otherEffectRendered = Boolean(
+      effects && effects.filter(({didRender}) => didRender).length
+    );
+
     // Collect layers to render
     const channels = this._groupByCollideGroup(gl, collideLayers);
 
     const viewport = viewports[0];
-    const viewportChanged = !this.lastViewport || !this.lastViewport.equals(viewport);
+    const viewportChanged =
+      !this.lastViewport || !this.lastViewport.equals(viewport) || otherEffectRendered;
 
     // Resize framebuffers to match canvas
     for (const collideGroup in channels) {
@@ -62,22 +68,34 @@ export default class CollideEffect implements Effect {
         width: gl.canvas.width / DOWNSCALE,
         height: gl.canvas.height / DOWNSCALE
       });
-      this._render(renderInfo, {layerFilter, onViewportActive, views, viewport, viewportChanged});
+      this._render(renderInfo, {
+        effects,
+        layerFilter,
+        onViewportActive,
+        views,
+        viewport,
+        viewportChanged
+      });
     }
 
-    // const pass = this.collidePasses.labels;
-    // if (pass) this._debug(pass);
+    // @ts-ignore
+    if (window.debug) {
+      const pass = Object.values(this.collidePasses)[0];
+      if (pass) this._debug(pass);
+    }
   }
 
   private _render(
     renderInfo: RenderInfo,
     {
+      effects,
       layerFilter,
       onViewportActive,
       views,
       viewport,
       viewportChanged
     }: {
+      effects: PreRenderOptions['effects'];
       layerFilter: PreRenderOptions['layerFilter'];
       onViewportActive: PreRenderOptions['onViewportActive'];
       views: PreRenderOptions['views'];
@@ -109,6 +127,7 @@ export default class CollideEffect implements Effect {
       collidePass.render({
         pass: 'collide',
         layers: renderInfo.layers,
+        effects,
         layerFilter,
         viewports: viewport ? [viewport] : [],
         onViewportActive,
