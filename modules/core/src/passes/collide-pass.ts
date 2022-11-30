@@ -7,7 +7,7 @@ import type {LayersPassRenderOptions} from './layers-pass';
 type CollidePassRenderOptions = LayersPassRenderOptions & {};
 
 export default class CollidePass extends LayersPass {
-  static dummyCollideMap = null;
+  static dummyCollideMap: Map<WebGLRenderingContext, Texture2D> = new Map();
 
   collideMap: Texture2D;
   depthBuffer: Renderbuffer;
@@ -41,8 +41,8 @@ export default class CollidePass extends LayersPass {
       }
     });
 
-    if (!CollidePass.dummyCollideMap) {
-      CollidePass.dummyCollideMap = new Texture2D(gl, {width: 1, height: 1});
+    if (!CollidePass.dummyCollideMap.has(gl)) {
+      CollidePass.dummyCollideMap.set(gl, new Texture2D(gl, {width: 1, height: 1}));
     }
   }
 
@@ -78,7 +78,7 @@ export default class CollidePass extends LayersPass {
     return {
       drawToCollideMap: true,
       // To avoid feedback loop forming between Framebuffer and active Texture.
-      dummyCollideMap: CollidePass.dummyCollideMap,
+      dummyCollideMap: CollidePass.dummyCollideMap.get(this.gl),
       pickingActive: 1,
       pickingAttribute: false,
       lightSources: {}
