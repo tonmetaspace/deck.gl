@@ -48,7 +48,6 @@ export default function App() {
     pointRadiusUnits: 'pixels',
     getPointRadius: 8,
     getFillColor: d => [25 * d.properties.scalerank, 255 - 25 * d.properties.scalerank, 123],
-    pickable: true, // TODO Currently required!!!!!
     onClick: ({object}) => console.log(object.properties)
   };
   const maskProps = {
@@ -121,7 +120,6 @@ export default function App() {
         getText: f => f.properties.name,
         getTextColor: [0, 0, 0],
         getTextSize: 12,
-        pickable: true,
         parameters: {depthTest: false},
 
         extensions: [new CollideExtension(), new MaskExtension()],
