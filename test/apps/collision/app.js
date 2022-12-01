@@ -38,7 +38,7 @@ const basemap = new GeoJsonLayer({
 /* eslint-disable react/no-deprecated */
 export default function App() {
   const [collideEnabled, setCollideEnabled] = useState(true);
-  const [maskEnabled, setMaskEnabled] = useState(false);
+  const [maskEnabled, setMaskEnabled] = useState(true);
   const [showCarto, setShowCarto] = useState(false);
   const [showPoints, setShowPoints] = useState(true);
   const [showLabels, setShowLabels] = useState(false);
@@ -125,7 +125,7 @@ export default function App() {
         parameters: {depthTest: false},
 
         extensions: [new CollideExtension(), new MaskExtension()],
-        collideGroup: 'def',
+        collideGroup: collideEnabled && 'def',
         // TODO interlayer priority not working
         getCollidePriority: 0,
         collideTestProps: {
@@ -142,7 +142,7 @@ export default function App() {
         ...props,
 
         extensions: [new CollideExtension(), new MaskExtension()],
-        collideGroup: 'def',
+        collideGroup: collideEnabled && 'def',
         getCollidePriority: d => -d.properties.scalerank,
         collideTestProps: {
           pointAntialiasing: false, // Does this matter for collisions?
@@ -164,7 +164,7 @@ export default function App() {
 
         extensions: [new CollideExtension(), new MaskExtension()],
         getCollidePriority: d => -d.properties.scalerank,
-        collideGroup: 'labels',
+        collideGroup: collideEnabled && 'labels',
         collideTestProps: {
           sizeScale: 2 // Enlarge text to increase hit area
         },

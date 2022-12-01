@@ -36,7 +36,8 @@ export default class CollideExtension extends LayerExtension {
     const {collideGroup} = this.props;
     const {drawToCollideMap, collideMaps = {}} = moduleParameters;
     const collideGroups = Object.keys(collideMaps);
-    uniforms.collide_enabled = collideGroup && collideGroups.includes(collideGroup);
+    const collideEnabled = collideGroup && collideGroups.includes(collideGroup);
+    uniforms.collide_enabled = Boolean(collideEnabled);
 
     if (drawToCollideMap) {
       uniforms.collide_sort = 'getCollidePriority' in this.props;
@@ -52,12 +53,21 @@ export default class CollideExtension extends LayerExtension {
       this.props = this.clone(this.props.collideTestProps).props;
     } else {
       uniforms.collide_sort = false;
-      uniforms.collide_texture = collideGroup && moduleParameters.collideMaps[collideGroup];
+      uniforms.collide_texture = collideEnabled
+        ? moduleParameters.collideMaps[collideGroup]
+        : moduleParameters.dummyCollideMap;
       if (!uniforms.collide_texture) {
         console.log('No collide texture when reading from collide map');
-      } else if (uniforms.collide_texture.width === 1) {
-        console.log('Incorrect collide texture when reading from collide map');
       }
+    }
+
+    // Sanity checks
+    if (uniforms.collide_texture.gl !== context.gl) {
+      debugger;
+    }
+    // @ts-ignore
+    if (uniforms.collide_texture === window.activeFramebuffer.attachments[36064]) {
+      debugger;
     }
   }
 

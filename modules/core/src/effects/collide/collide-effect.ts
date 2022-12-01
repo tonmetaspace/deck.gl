@@ -29,12 +29,17 @@ export default class CollideEffect implements Effect {
 
   private channels: (RenderInfo | null)[] = [];
   private collidePasses: Record<string, CollidePass> = {};
+  private dummyCollideMap?: Texture2D;
   private lastViewport?: Viewport;
 
   preRender(
     gl: WebGLRenderingContext,
     {effects: allEffects, layers, layerFilter, viewports, onViewportActive, views}: PreRenderOptions
   ): void {
+    if (!this.dummyCollideMap) {
+      this.dummyCollideMap = new Texture2D(gl, {width: 1, height: 1});
+    }
+
     const collideLayers = layers.filter(
       // @ts-ignore
       ({props: {visible, extensions, collideGroup}}) =>
@@ -166,7 +171,10 @@ export default class CollideEffect implements Effect {
     // Create any new passes and remove any old ones
     for (const collideGroup of Object.keys(channelMap)) {
       if (!this.collidePasses[collideGroup]) {
-        this.collidePasses[collideGroup] = new CollidePass(gl, {id: collideGroup});
+        this.collidePasses[collideGroup] = new CollidePass(gl, {
+          id: collideGroup,
+          dummyCollideMap: this.dummyCollideMap
+        });
         this.channels[collideGroup] = channelMap[collideGroup];
       }
     }
@@ -180,12 +188,12 @@ export default class CollideEffect implements Effect {
     return channelMap;
   }
 
-  getModuleParameters(): {collideMaps: Record<string, Texture2D>} {
+  getModuleParameters(): {collideMaps: Record<string, Texture2D>; dummyCollideMap: Texture2D} {
     const collideMaps = {};
     for (const collideGroup in this.collidePasses) {
       collideMaps[collideGroup] = this.collidePasses[collideGroup].collideMap;
     }
-    return {collideMaps};
+    return {collideMaps, dummyCollideMap: this.dummyCollideMap};
   }
 
   cleanup(): void {

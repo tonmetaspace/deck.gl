@@ -7,13 +7,12 @@ import type {LayersPassRenderOptions} from './layers-pass';
 type CollidePassRenderOptions = LayersPassRenderOptions & {};
 
 export default class CollidePass extends LayersPass {
-  static dummyCollideMap: Map<WebGLRenderingContext, Texture2D> = new Map();
-
   collideMap: Texture2D;
   depthBuffer: Renderbuffer;
+  dummyCollideMap: Texture2D;
   fbo: Framebuffer;
 
-  constructor(gl, props: {id: string}) {
+  constructor(gl, props: {id: string; dummyCollideMap: Texture2D}) {
     super(gl, props);
 
     const {width, height} = gl.canvas;
@@ -30,9 +29,10 @@ export default class CollidePass extends LayersPass {
     });
 
     this.depthBuffer = new Renderbuffer(gl, {format: gl.DEPTH_COMPONENT16, width, height});
+    this.dummyCollideMap = props.dummyCollideMap;
 
     this.fbo = new Framebuffer(gl, {
-      id: 'collidemap',
+      id: `Collide-${props.id}`,
       width,
       height,
       attachments: {
@@ -40,10 +40,6 @@ export default class CollidePass extends LayersPass {
         [gl.DEPTH_ATTACHMENT]: this.depthBuffer
       }
     });
-
-    if (!CollidePass.dummyCollideMap.has(gl)) {
-      CollidePass.dummyCollideMap.set(gl, new Texture2D(gl, {width: 1, height: 1}));
-    }
   }
 
   render(options: CollidePassRenderOptions) {
@@ -78,7 +74,7 @@ export default class CollidePass extends LayersPass {
     return {
       drawToCollideMap: true,
       // To avoid feedback loop forming between Framebuffer and active Texture.
-      dummyCollideMap: CollidePass.dummyCollideMap.get(this.gl),
+      dummyCollideMap: this.dummyCollideMap,
       pickingActive: 1,
       pickingAttribute: false,
       lightSources: {}
