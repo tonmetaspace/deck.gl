@@ -8,7 +8,6 @@ import type Layer from '../../lib/layer';
 import type Viewport from '../../viewports/viewport';
 
 type CollideExtensionProps = {
-  collideEnabled?: boolean;
   collideTestProps?: {};
   collideGroup: string;
 };
@@ -38,10 +37,10 @@ export default class CollideEffect implements Effect {
   ): void {
     const collideLayers = layers.filter(
       // @ts-ignore
-      ({props: {visible, extensions, collideEnabled}}) =>
+      ({props: {visible, extensions, collideGroup}}) =>
         visible &&
         extensions.find(e => e.constructor.extensionName === 'CollideExtension') &&
-        collideEnabled
+        collideGroup
     ) as Layer<CollideExtensionProps>[];
     if (collideLayers.length === 0) {
       this.channels.length = 0;
@@ -150,7 +149,7 @@ export default class CollideEffect implements Effect {
     const channelMap = {};
     let channelCount = 0;
     for (const layer of collideLayers) {
-      const {collideGroup = 'default'} = layer.props;
+      const {collideGroup} = layer.props;
       let channelInfo = channelMap[collideGroup];
       if (!channelInfo) {
         channelInfo = {

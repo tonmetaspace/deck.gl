@@ -125,7 +125,7 @@ export default function App() {
         parameters: {depthTest: false},
 
         extensions: [new CollideExtension(), new MaskExtension()],
-        collideEnabled,
+        collideGroup: 'def',
         // TODO interlayer priority not working
         getCollidePriority: 0,
         collideTestProps: {
@@ -142,7 +142,7 @@ export default function App() {
         ...props,
 
         extensions: [new CollideExtension(), new MaskExtension()],
-        collideEnabled,
+        collideGroup: 'def',
         getCollidePriority: d => -d.properties.scalerank,
         collideTestProps: {
           pointAntialiasing: false, // Does this matter for collisions?
@@ -163,7 +163,6 @@ export default function App() {
         ...props,
 
         extensions: [new CollideExtension(), new MaskExtension()],
-        collideEnabled,
         getCollidePriority: d => -d.properties.scalerank,
         collideGroup: 'labels',
         collideTestProps: {

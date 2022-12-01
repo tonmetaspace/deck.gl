@@ -6,26 +6,20 @@ import type {Layer, LayerContext} from '@deck.gl/core';
 
 const defaultProps = {
   getCollidePriority: {type: 'accessor', value: 0},
-  collideEnabled: true,
   collideTestProps: {},
-  collideGroup: 'default'
+  collideGroup: {type: 'string', value: null}
 };
 
 export type CollideExtensionProps = {
-  /**
-   * Collision detection is disabled if `collideEnabled` is false.
-   */
-  collideEnabled?: boolean;
-
   /**
    * Props to override when rendering collision map
    */
   collideTestProps?: {};
 
   /**
-   * Collision group this layer belongs to
+   * Collision group this layer belongs to. If it is not set, collision detection is disabled
    */
-  collideGroup: string;
+  collideGroup?: string;
 };
 
 /** Allows layers to hide overlapping objects. */
@@ -39,11 +33,10 @@ export default class CollideExtension extends LayerExtension {
 
   /* eslint-disable camelcase */
   draw(this: Layer<CollideExtensionProps>, {uniforms, context, moduleParameters}: any) {
-    const {collideEnabled = defaultProps.collideEnabled, collideGroup = defaultProps.collideGroup} =
-      this.props;
+    const {collideGroup} = this.props;
     const {drawToCollideMap, collideMaps = {}} = moduleParameters;
     const collideGroups = Object.keys(collideMaps);
-    uniforms.collide_enabled = collideEnabled && collideGroups.includes(collideGroup);
+    uniforms.collide_enabled = collideGroup && collideGroups.includes(collideGroup);
 
     if (drawToCollideMap) {
       uniforms.collide_sort = 'getCollidePriority' in this.props;
@@ -59,7 +52,7 @@ export default class CollideExtension extends LayerExtension {
       this.props = this.clone(this.props.collideTestProps).props;
     } else {
       uniforms.collide_sort = false;
-      uniforms.collide_texture = moduleParameters.collideMaps[collideGroup];
+      uniforms.collide_texture = collideGroup && moduleParameters.collideMaps[collideGroup];
       if (!uniforms.collide_texture) {
         console.log('No collide texture when reading from collide map');
       } else if (uniforms.collide_texture.width === 1) {
