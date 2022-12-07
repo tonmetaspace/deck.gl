@@ -19,7 +19,6 @@
 // THE SOFTWARE.
 
 import test from 'tape-promise/tape';
-import GL from '@luma.gl/constants';
 
 // import {COORDINATE_SYSTEM, Viewport, WebMercatorViewport} from 'deck.gl';
 import {COORDINATE_SYSTEM, WebMercatorViewport} from 'deck.gl';
