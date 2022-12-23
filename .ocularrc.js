@@ -11,7 +11,7 @@ const LUMA_ALIASES_LOCAL = {
   '@luma.gl/debug': `${lumaModules}/debug/src`,
   '@luma.gl/engine': `${lumaModules}/engine/src`,
   '@luma.gl/webgl': `${lumaModules}/webgl/src`,
-  '@luma.gl/gltools': `${lumaModules}/gltools/src`,
+  '@luma.gl/webgl-legacy': `${lumaModules}/webgl-legacy/src`,
   '@luma.gl/shadertools': `${lumaModules}/shadertools/src`,
   '@luma.gl/test-utils': `${lumaModules}/test-utils/src`,
   '@luma.gl/experimental': `${lumaModules}/experimental/src`

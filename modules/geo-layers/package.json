@@ -37,11 +37,11 @@
     "@loaders.gl/schema": "^3.2.10",
     "@loaders.gl/terrain": "^3.2.10",
     "@loaders.gl/tiles": "^3.2.10",
-    "@luma.gl/constants": "9.0.0-alpha.11",
-    "@luma.gl/experimental": "9.0.0-alpha.11",
-    "@math.gl/core": "^3.6.2",
-    "@math.gl/culling": "^3.6.2",
-    "@math.gl/web-mercator": "^3.6.2",
+    "@luma.gl/constants": "9.0.0-alpha.12",
+    "@luma.gl/experimental": "9.0.0-alpha.12",
+    "@math.gl/core": "4.0.0-alpha.1",
+    "@math.gl/culling": "4.0.0-alpha.1",
+    "@math.gl/web-mercator": "4.0.0-alpha.1",
     "@types/geojson": "^7946.0.8",
     "h3-js": "^3.7.0",
     "long": "^3.2.0"
@@ -52,7 +52,7 @@
     "@deck.gl/layers": "^8.0.0",
     "@deck.gl/mesh-layers": "^8.0.0",
     "@loaders.gl/core": "^3.0.0",
-    "@luma.gl/core": "9.0.0-alpha.11"
+    "@luma.gl/core": "^9.0.0-alpha"
   },
   "gitHead": "13ace64fc2cee08c133afc882fc307253489a4e4"
 }
