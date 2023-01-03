@@ -40,7 +40,8 @@
   },
   "include": [
     "modules",
-    "test"
+    "test",
+    "node_modules/@luma.gl"
   ],
   "exclude": [
   ]
