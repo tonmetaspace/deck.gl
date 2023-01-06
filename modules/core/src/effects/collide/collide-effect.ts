@@ -1,7 +1,6 @@
 import {Texture2D, cssToDeviceRatio} from '@luma.gl/core';
 import {readPixelsToArray} from '@luma.gl/core';
 import CollidePass from '../../passes/collide-pass';
-import {OPERATION} from '../../lib/constants';
 
 import type {Effect, PreRenderOptions} from '../../lib/effect';
 import type Layer from '../../lib/layer';
@@ -137,7 +136,7 @@ export default class CollideEffect implements Effect {
         onViewportActive,
         views,
         moduleParameters: {
-          devicePixelRatio: cssToDeviceRatio(collidePass!.gl) / DOWNSCALE
+          devicePixelRatio: cssToDeviceRatio(collidePass.gl) / DOWNSCALE
         }
       });
     }
@@ -152,7 +151,6 @@ export default class CollideEffect implements Effect {
     collideLayers: Layer<CollideExtensionProps>[]
   ): Record<string, RenderInfo> {
     const channelMap = {};
-    let channelCount = 0;
     for (const layer of collideLayers) {
       const {collideGroup} = layer.props;
       let channelInfo = channelMap[collideGroup];
