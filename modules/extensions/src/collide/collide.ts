@@ -4,6 +4,8 @@ import GL from '@luma.gl/constants';
 
 import type {Layer, LayerContext} from '@deck.gl/core';
 
+import CollideEffect from './collide-effect';
+
 const defaultProps = {
   getCollidePriority: {type: 'accessor', value: 0},
   collideTestProps: {},
@@ -65,13 +67,11 @@ export default class CollideExtension extends LayerExtension {
     if (uniforms.collide_texture.gl !== context.gl) {
       debugger;
     }
-    // @ts-ignore
-    if (uniforms.collide_texture === window.activeFramebuffer.attachments[36064]) {
-      debugger;
-    }
   }
 
   initializeState(this: Layer<CollideExtensionProps>, context: LayerContext, extension: this) {
+    this.context.deck?._addDefaultEffect(new CollideEffect());
+
     const attributeManager = this.getAttributeManager();
     if (attributeManager && 'getCollidePriority' in this.props) {
       attributeManager.add({
