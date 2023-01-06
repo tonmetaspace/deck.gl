@@ -54,11 +54,6 @@ export default class CollideExtension extends LayerExtension {
     if (drawToCollideMap) {
       uniforms.collide_sort = 'getCollidePriority' in this.props;
       uniforms.collide_texture = moduleParameters.dummyCollideMap;
-      if (!uniforms.collide_texture) {
-        console.log('No collide texture when drawing to collide map');
-      } else if (uniforms.collide_texture.width !== 1) {
-        console.log('Incorrect collide texture when drawing to collide map');
-      }
 
       // Override any props with those defined in collideTestProps
       // @ts-ignore
@@ -68,14 +63,6 @@ export default class CollideExtension extends LayerExtension {
       uniforms.collide_texture = collideEnabled
         ? moduleParameters.collideMaps[collideGroup]
         : moduleParameters.dummyCollideMap;
-      if (!uniforms.collide_texture) {
-        console.log('No collide texture when reading from collide map');
-      }
-    }
-
-    // Sanity checks
-    if (uniforms.collide_texture.gl !== context.gl) {
-      debugger;
     }
   }
 

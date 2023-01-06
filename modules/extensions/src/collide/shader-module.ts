@@ -22,7 +22,7 @@ uniform sampler2D collide_texture;
 uniform bool collide_enabled;
 uniform vec2 project_uViewportSize;
 
-float match(vec2 tex, vec3 pickingColor) {
+float collide_match(vec2 tex, vec3 pickingColor) {
   vec4 collide_pickingColor = texture2D(collide_texture, tex);
   float delta = dot(abs(collide_pickingColor.rgb - pickingColor), vec3(1.0));
   float e = 0.001;
@@ -46,7 +46,7 @@ float collide_isInBounds(vec2 texCoords, vec3 pickingColor) {
   for(int i = -N; i <= N; i++) {
     delta.x = -step.x * floatN;
     for(int j = -N; j <= N; j++) {
-      accumulator += match(texCoords + delta, pickingColor);
+      accumulator += collide_match(texCoords + delta, pickingColor);
       delta.x += step.x;
     }
     delta.y += step.y;
@@ -84,15 +84,6 @@ varying vec3 collide_pickingColor;
   'fs:#main-end': `
   if (collide_enabled) {
     float collide_visible = collide_isInBounds(collide_texCoords, collide_pickingColor);
-
-    // Debug: show extent of render target
-    // gl_FragColor = vec4(collide_texCoords, 0.0, 1.0);
-    // if (collide_texCoords.x > 0.99 || collide_texCoords.x < 0.01 || collide_texCoords.y > 0.99 || collide_texCoords.y < 0.01) {
-    //   gl_FragColor.b = 1.0;
-    // }
-    // gl_FragColor = texture2D(collide_texture, collide_texCoords);
-
-    // Fade out
     gl_FragColor.a *= collide_visible;
     if (collide_visible < 0.0001) discard;
   }
