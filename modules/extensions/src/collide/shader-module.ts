@@ -9,18 +9,14 @@ attribute float collidePriorities;
 attribute float instanceCollidePriorities;
 #endif
 
+uniform sampler2D collide_texture;
 uniform bool collide_sort;
+uniform bool collide_enabled;
 
 vec2 collide_getCoords(vec4 position) {
   vec4 collide_clipspace = project_common_position_to_clipspace(position);
   return (1.0 + collide_clipspace.xy / collide_clipspace.w) / 2.0;
 }
-`;
-
-const fs = `
-uniform sampler2D collide_texture;
-uniform bool collide_enabled;
-uniform vec2 project_uViewportSize;
 
 float collide_match(vec2 tex, vec3 pickingColor) {
   vec4 collide_pickingColor = texture2D(collide_texture, tex);
@@ -29,7 +25,7 @@ float collide_match(vec2 tex, vec3 pickingColor) {
   return step(delta, e);
 }
 
-float collide_isInBounds(vec2 texCoords, vec3 pickingColor) {
+float collide_isVisible(vec2 texCoords, vec3 pickingColor) {
   if (!collide_enabled) {
     return 1.0;
   }
@@ -59,41 +55,35 @@ float collide_isInBounds(vec2 texCoords, vec3 pickingColor) {
 
 const inject = {
   'vs:#decl': `
-varying vec2 collide_texCoords;
-varying vec3 collide_pickingColor;
-`,
-  'vs:#main-end': `
-   vec4 collide_common_position = project_position(vec4(geometry.worldPosition, 1.0));
-   collide_texCoords = collide_getCoords(collide_common_position);
-   collide_pickingColor = geometry.pickingColor / 255.0;
+  float collide_fade = 1.0;
 `,
   'vs:DECKGL_FILTER_GL_POSITION': `
-   if (collide_sort) {
-     #ifdef NON_INSTANCED_MODEL
-     float collidePriority = collidePriorities;
-     #else
-     float collidePriority = instanceCollidePriorities;
-     #endif
-     position.z = -0.001 * collidePriority * position.w; // Support range -1000 -> 1000
-   }
-  `,
-  'fs:#decl': `
-varying vec2 collide_texCoords;
-varying vec3 collide_pickingColor;
-`,
-  'fs:#main-end': `
-  if (collide_enabled) {
-    float collide_visible = collide_isInBounds(collide_texCoords, collide_pickingColor);
-    gl_FragColor.a *= collide_visible;
-    if (collide_visible < 0.0001) discard;
+  if (collide_sort) {
+    #ifdef NON_INSTANCED_MODEL
+    float collidePriority = collidePriorities;
+    #else
+    float collidePriority = instanceCollidePriorities;
+    #endif
+    position.z = -0.001 * collidePriority * position.w; // Support range -1000 -> 1000
   }
-`
+
+  if (collide_enabled) {
+    vec4 collide_common_position = project_position(vec4(geometry.worldPosition, 1.0));
+    vec2 collide_texCoords = collide_getCoords(collide_common_position);
+    collide_fade = collide_isVisible(collide_texCoords, geometry.pickingColor / 255.0);
+    if (collide_fade < 0.0001) {
+      position = vec4(0.);
+    }
+  }
+  `,
+  'vs:DECKGL_FILTER_COLOR': `
+  color.a *= collide_fade;
+  `
 };
 
 export default {
   name: 'collide',
   dependencies: [project],
   vs,
-  fs,
   inject
 } as ShaderModule;
