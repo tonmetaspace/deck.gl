@@ -1,4 +1,5 @@
 import {
+  Accessor,
   COORDINATE_SYSTEM,
   Layer,
   LayerContext,
@@ -16,7 +17,12 @@ const defaultProps = {
   collideGroup: {type: 'string', value: null}
 };
 
-export type CollideExtensionProps = {
+export type CollideExtensionProps<DataT = any> = {
+  /**
+   * Accessor for collision priority. Must return a number in the range -1000 -> 1000. Features with higher values are shown preferentially.
+   */
+  getCollidePriority?: Accessor<DataT, number>;
+
   /**
    * Props to override when rendering collision map
    */

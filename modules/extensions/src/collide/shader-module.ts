@@ -74,7 +74,7 @@ varying vec3 collide_pickingColor;
      #else
      float collidePriority = instanceCollidePriorities;
      #endif
-     position.z = 0.001 * collidePriority * position.w; // Support range -1000 -> 1000
+     position.z = -0.001 * collidePriority * position.w; // Support range -1000 -> 1000
    }
   `,
   'fs:#decl': `
