@@ -1,9 +1,13 @@
-import {COORDINATE_SYSTEM, LayerExtension, log, OPERATION} from '@deck.gl/core';
+import {
+  COORDINATE_SYSTEM,
+  Layer,
+  LayerContext,
+  LayerExtension,
+  log,
+  OPERATION
+} from '@deck.gl/core';
+import EffectOrder from '../effect-order';
 import collide from './shader-module';
-import GL from '@luma.gl/constants';
-
-import type {Layer, LayerContext} from '@deck.gl/core';
-
 import CollideEffect from './collide-effect';
 
 const defaultProps = {
@@ -70,7 +74,7 @@ export default class CollideExtension extends LayerExtension {
   }
 
   initializeState(this: Layer<CollideExtensionProps>, context: LayerContext, extension: this) {
-    this.context.deck?._addDefaultEffect(new CollideEffect());
+    this.context.deck?._addDefaultEffect(new CollideEffect(), EffectOrder.CollideEffect);
 
     const attributeManager = this.getAttributeManager();
     if (attributeManager && 'getCollidePriority' in this.props) {

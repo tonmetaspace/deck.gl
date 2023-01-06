@@ -38,7 +38,7 @@ const basemap = new GeoJsonLayer({
 /* eslint-disable react/no-deprecated */
 export default function App() {
   const [collideEnabled, setCollideEnabled] = useState(true);
-  const [maskEnabled, setMaskEnabled] = useState(true);
+  const [maskEnabled, setMaskEnabled] = useState(false);
   const [showCarto, setShowCarto] = useState(false);
   const [showPoints, setShowPoints] = useState(true);
   const [showLabels, setShowLabels] = useState(false);

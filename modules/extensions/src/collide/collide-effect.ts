@@ -1,10 +1,7 @@
 import {Texture2D, cssToDeviceRatio} from '@luma.gl/core';
 import {readPixelsToArray} from '@luma.gl/core';
-import CollidePass from '../../passes/collide-pass';
-
-import type {Effect, PreRenderOptions} from '../../lib/effect';
-import type Layer from '../../lib/layer';
-import type Viewport from '../../viewports/viewport';
+import type {Effect, Layer, PreRenderOptions, Viewport} from '@deck.gl/core';
+import CollidePass from './collide-pass';
 
 type CollideExtensionProps = {
   collideTestProps?: {};
