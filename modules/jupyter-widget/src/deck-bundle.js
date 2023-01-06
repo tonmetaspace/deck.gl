@@ -2,16 +2,10 @@
  * Pulls together all deck.gl dependencies used
  * in @deck.gl/jupyter-widget
  */
-const deck = require('../../core/bundle');
-
-Object.assign(
-  deck,
-  require('@deck.gl/layers'),
-  require('@deck.gl/aggregation-layers'),
-  require('@deck.gl/geo-layers'),
-  require('@deck.gl/mesh-layers'),
-  require('@deck.gl/google-maps'),
-  require('@deck.gl/json')
-);
-
-module.exports = deck;
+export * from '../../core/bundle';
+export * from '@deck.gl/layers';
+export * from '@deck.gl/aggregation-layers';
+export * from '@deck.gl/geo-layers';
+export * from '@deck.gl/mesh-layers';
+export * from '@deck.gl/google-maps';
+export * from '@deck.gl/json';

@@ -23,10 +23,10 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "watch": "webpack --watch",
-    "build": "webpack -p",
+    "watch": "npm run build -- --watch",
+    "build": "ocular-bundle ./src/index.js --output=./dist/index.js --globalName= --sourcemap --format=umd --externals=@jupyter-widgets/base",
     "build:labextension": "npm pack",
-    "prepublishOnly": "webpack -p"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@deck.gl/aggregation-layers": "8.9.0-alpha.5",
@@ -40,7 +40,7 @@
     "@loaders.gl/core": "^3.2.10",
     "@loaders.gl/csv": "^3.2.10",
     "@luma.gl/constants": "^8.5.16",
-    "mapbox-gl": "^1.2.1"
+    "mapbox-gl": "^1.13.2"
   },
   "jupyterlab": {
     "extension": "src/plugin",

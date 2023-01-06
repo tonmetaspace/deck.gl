@@ -1,18 +1,14 @@
 // We use `require` here because luma and deck core must be imported before `global`
-const LumaGL = require('./lumagl');
-const deckGLCore = require('../src');
+import * as LumaGL from './lumagl';
+import {registerLoaders, load, parse, fetchFile} from '@loaders.gl/core';
 
-const DeckGL = require('./deckgl').default;
-const {registerLoaders, load, parse, fetchFile} = require('@loaders.gl/core');
+globalThis.luma = globalThis.luma || {};
+globalThis.loaders = globalThis.loaders || {};
 
-/* global window, global */
-const _global = typeof window === 'undefined' ? global : window;
-_global.deck = _global.deck || {};
-_global.luma = _global.luma || {};
-_global.loaders = _global.loaders || {};
+Object.assign(globalThis.luma, LumaGL);
+Object.assign(globalThis.loaders, {registerLoaders, load, parse, fetchFile});
 
-Object.assign(_global.deck, deckGLCore, {DeckGL});
-Object.assign(_global.luma, LumaGL);
-Object.assign(_global.loaders, {registerLoaders, load, parse, fetchFile});
+export * from '../src';
+export {register as _registerLoggers} from '../src/debug';
 
-module.exports = _global.deck;
+export {default as DeckGL} from './deckgl';

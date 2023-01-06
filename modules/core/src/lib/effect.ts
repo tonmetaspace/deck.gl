@@ -19,5 +19,6 @@ export interface Effect {
   postRender?: (gl: WebGLRenderingContext, opts: PostRenderOptions) => Framebuffer;
   getModuleParameters?: (layer: Layer) => any;
 
+  setProps?: (props: any) => void;
   cleanup(): void;
 }

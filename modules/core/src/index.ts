@@ -19,11 +19,7 @@
 // THE SOFTWARE.
 /* eslint-disable max-len */
 
-// Intialize globals, check version
-import './lib/init';
-
-// Import shaderlib to make sure shader modules are initialized
-import './shaderlib';
+export {VERSION} from './lib/init';
 
 // Core Library
 export {COORDINATE_SYSTEM, OPERATION, UNIT} from './lib/constants';
@@ -126,6 +122,7 @@ export type {FilterContext} from './passes/layers-pass';
 export type {PickingInfo, GetPickingInfoParams} from './lib/picking/pick-info';
 export type {ConstructorOf as _ConstructorOf, ShaderModule as _ShaderModule} from './types/types';
 export type {BinaryAttribute} from './lib/attribute/attribute';
-export type {Effect} from './lib/effect';
+export type {Effect, PreRenderOptions, PostRenderOptions} from './lib/effect';
 export type {PickingUniforms, ProjectUniforms} from './shaderlib';
 export type {DefaultProps} from './lifecycle/prop-types';
+export type {LayersPassRenderOptions} from './passes/layers-pass';
