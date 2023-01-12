@@ -26,7 +26,7 @@ class TestLayer extends Layer {
   initializeState() {}
 }
 
-test.only('CollidePass#shouldDrawLayer', t => {
+test('CollidePass#shouldDrawLayer', t => {
   const layers = [
     new TestLayer({
       id: 'test-default'
@@ -55,5 +55,34 @@ test.only('CollidePass#shouldDrawLayer', t => {
   t.is(renderStats.totalCount, 3, 'Total # of layers');
   t.is(renderStats.visibleCount, 1, '# of rendered layers');
 
+  t.end();
+});
+
+test('CollidePass#getModuleParameters', t => {
+  const collidePass = new CollidePass(gl, {dummyCollideMap: 'DUMMY_TEXTURE'});
+  const moduleParameters = collidePass.getModuleParameters();
+
+  t.equal(
+    moduleParameters.drawToCollideMap,
+    true,
+    `CollidePass has drawToCollideMap module parameter`
+  );
+  t.equal(
+    moduleParameters.dummyCollideMap,
+    'DUMMY_TEXTURE',
+    `CollidePass has dummyCollideMap module parameter`
+  );
+  t.equal(moduleParameters.pickingActive, 1, `CollidePass has pickingActive module parameter`);
+  t.equal(
+    moduleParameters.pickingAttribute,
+    false,
+    `CollidePass has pickingAttribute module parameter`
+  );
+  t.deepEqual(
+    moduleParameters.lightSources,
+    {},
+    `CollidePass has empty lightSources module parameter`
+  );
+  collidePass.delete();
   t.end();
 });
