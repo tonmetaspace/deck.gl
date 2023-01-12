@@ -23,7 +23,7 @@ export default class CollideEffect implements Effect {
   props = null;
   useInPicking = true;
 
-  private channels: (RenderInfo | null)[] = [];
+  private channels: Record<string, RenderInfo> = {};
   private collidePasses: Record<string, CollidePass> = {};
   private dummyCollideMap?: Texture2D;
   private lastViewport?: Viewport;
@@ -44,7 +44,7 @@ export default class CollideEffect implements Effect {
         collideGroup
     ) as Layer<CollideExtensionProps>[];
     if (collideLayers.length === 0) {
-      this.channels.length = 0;
+      this.channels = {};
       return;
     }
 
@@ -186,7 +186,11 @@ export default class CollideEffect implements Effect {
   }
 
   cleanup(): void {
-    this.channels = [];
+    if (this.dummyCollideMap) {
+      this.dummyCollideMap.delete();
+      this.dummyCollideMap = undefined;
+    }
+    this.channels = {};
     for (const collidePass of Object.values(this.collidePasses)) {
       collidePass.delete();
     }
