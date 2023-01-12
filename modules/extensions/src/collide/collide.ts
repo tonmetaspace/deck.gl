@@ -52,7 +52,7 @@ export default class CollideExtension extends LayerExtension {
     uniforms.collide_enabled = Boolean(collideEnabled);
 
     if (drawToCollideMap) {
-      uniforms.collide_sort = 'getCollidePriority' in this.props;
+      uniforms.collide_sort = Boolean(this.props.getCollidePriority);
       uniforms.collide_texture = moduleParameters.dummyCollideMap;
 
       // Override any props with those defined in collideTestProps

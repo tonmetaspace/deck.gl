@@ -124,7 +124,6 @@ export default function App() {
 
         extensions: [new CollideExtension(), new MaskExtension()],
         collideGroup: collideEnabled && 'def',
-        // TODO interlayer priority not working
         getCollidePriority: 0,
         collideTestProps: {
           sizeScale: 2 // Enlarge text to increase hit area
@@ -141,7 +140,7 @@ export default function App() {
 
         extensions: [new CollideExtension(), new MaskExtension()],
         collideGroup: collideEnabled && 'def',
-        getCollidePriority: d => -d.properties.scalerank,
+        getCollidePriority: d => d.properties.scalerank,
         collideTestProps: {
           pointAntialiasing: false, // Does this matter for collisions?
           radiusScale: 2 // Enlarge point to increase hit area
