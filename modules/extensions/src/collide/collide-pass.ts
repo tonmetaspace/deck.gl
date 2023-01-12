@@ -80,7 +80,10 @@ export default class CollidePass extends LayersPass {
 
   delete() {
     this.fbo.delete();
+    this.fbo = null;
     this.collideMap.delete();
+    this.collideMap = null;
     this.depthBuffer.delete();
+    this.depthBuffer = null;
   }
 }
