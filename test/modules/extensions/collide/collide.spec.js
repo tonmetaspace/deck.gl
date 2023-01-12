@@ -5,29 +5,29 @@ import {testLayer} from '@deck.gl/test-utils';
 
 import {geojson} from 'deck.gl-test/data';
 
-test.only('CollideExtension', t => {
+test('CollideExtension', t => {
+  const props = {
+    id: 'collide-extension-test',
+    data: [],
+    extensions: [new CollideExtension()],
+    collideGroup: 'COLLIDE_GROUP',
+
+    // simulate CollideEffect parameters
+    collideMaps: {
+      COLLIDE_GROUP: 'COLLIDE_TEXTURE'
+    },
+    drawToCollideMap: false,
+    dummyCollideMap: 'DUMMY_TEXTURE'
+  };
+
   const testCases = [
     {
-      props: {
-        id: 'collide-extension-test',
-        data: [],
-        extensions: [new CollideExtension()],
-        collideGroup: 'COLLIDE_GROUP',
-        getRadius: 1,
-
-        // simulate CollideEffect parameters
-        collideMaps: {
-          COLLIDE_GROUP: 'COLLIDE_TEXTURE'
-        },
-        drawToCollideMap: false,
-        dummyCollideMap: 'DUMMY_TEXTURE'
-      },
+      props,
       onAfterUpdate: ({layer}) => {
         const uniforms = layer.getModels()[0].getUniforms();
         t.ok(uniforms.collide_enabled, 'collide_enabled in uniforms');
         t.equal(uniforms.collide_sort, false, 'collide_sort in disabled when reading');
         t.equal(uniforms.collide_texture, 'COLLIDE_TEXTURE', 'collide_texture correctly set');
-        t.equal(layer.props.getRadius, 1, 'getRadius set to default');
       }
     },
     {
@@ -53,7 +53,7 @@ test.only('CollideExtension', t => {
         t.equal(
           uniforms.collide_sort,
           false,
-          'collide_sort in disabled when getCollidePriority not set'
+          'collide_sort is disabled when getCollidePriority not set'
         );
         t.equal(
           uniforms.collide_texture,
@@ -73,6 +73,20 @@ test.only('CollideExtension', t => {
         t.ok(uniforms.collide_enabled, 'collide_enabled in uniforms');
         t.ok(uniforms.collide_sort, 'collide_sort enabled when getCollidePriority set');
         t.ok(attributes.collidePriorities, 'collidePriorities attribute added');
+      }
+    },
+    {
+      props,
+      onAfterUpdate: ({layer}) => {
+        const uniforms = layer.getModels()[0].getUniforms();
+        const attributes = layer.getAttributeManager().getAttributes();
+        t.ok(uniforms.collide_enabled, 'collide_enabled in uniforms');
+        t.equal(
+          uniforms.collide_sort,
+          false,
+          'collide_sort is disabled when getCollidePriority not set'
+        );
+        t.equal(attributes.collidePriorities, undefined, 'no collidePriorities attribute added');
       }
     }
   ];
