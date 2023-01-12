@@ -32,7 +32,7 @@ test.only('CollideExtension', t => {
     },
     {
       updateProps: {
-        collideGroup: 'NONEXISTANT'
+        collideGroup: 'NONEXISTENT'
       },
       onAfterUpdate: ({layer}) => {
         const uniforms = layer.getModels()[0].getUniforms();
@@ -48,6 +48,7 @@ test.only('CollideExtension', t => {
       },
       onAfterUpdate: ({layer}) => {
         const uniforms = layer.getModels()[0].getUniforms();
+        const attributes = layer.getAttributeManager().getAttributes();
         t.ok(uniforms.collide_enabled, 'collide_enabled in uniforms');
         t.equal(
           uniforms.collide_sort,
@@ -59,6 +60,19 @@ test.only('CollideExtension', t => {
           'DUMMY_TEXTURE',
           'collide_texture set to dummy texture when drawing'
         );
+        t.equal(attributes.collidePriorities, undefined, 'no collidePriorities attribute added');
+      }
+    },
+    {
+      updateProps: {
+        getCollidePriority: d => d.priority
+      },
+      onAfterUpdate: ({layer}) => {
+        const uniforms = layer.getModels()[0].getUniforms();
+        const attributes = layer.getAttributeManager().getAttributes();
+        t.ok(uniforms.collide_enabled, 'collide_enabled in uniforms');
+        t.ok(uniforms.collide_sort, 'collide_sort enabled when getCollidePriority set');
+        t.ok(attributes.collidePriorities, 'collidePriorities attribute added');
       }
     }
   ];

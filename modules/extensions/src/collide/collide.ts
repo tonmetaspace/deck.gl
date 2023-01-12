@@ -5,7 +5,8 @@ import {
   LayerContext,
   LayerExtension,
   log,
-  OPERATION
+  OPERATION,
+  UpdateParameters
 } from '@deck.gl/core';
 import EffectOrder from '../effect-order';
 import collide from './shader-module';
@@ -68,9 +69,18 @@ export default class CollideExtension extends LayerExtension {
 
   initializeState(this: Layer<CollideExtensionProps>, context: LayerContext, extension: this) {
     this.context.deck?._addDefaultEffect(new CollideEffect(), EffectOrder.CollideEffect);
+  }
 
+  updateState(
+    this: Layer<CollideExtensionProps>,
+    params: UpdateParameters<Layer<CollideExtensionProps>>,
+    extension: this
+  ) {
     const attributeManager = this.getAttributeManager();
-    if (attributeManager && 'getCollidePriority' in this.props) {
+    if (!attributeManager) return;
+    const hasAttribute = attributeManager.getAttributes()['collidePriorities'];
+
+    if (Boolean(this.props.getCollidePriority) && !hasAttribute) {
       attributeManager.add({
         collidePriorities: {
           size: 1,
@@ -81,6 +91,8 @@ export default class CollideExtension extends LayerExtension {
           }
         }
       });
+    } else if (!Boolean(this.props.getCollidePriority) && hasAttribute) {
+      attributeManager.remove(['collidePriorities']);
     }
   }
 }
