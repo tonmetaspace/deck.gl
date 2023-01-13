@@ -6,11 +6,17 @@ import {CollideExtension} from '@deck.gl/extensions';
 import CollideEffect from '@deck.gl/extensions/collide/collide-effect';
 import * as FIXTURES from 'deck.gl-test/data';
 import {gl} from '@deck.gl/test-utils';
+import {makeSpy} from '@probe.gl/test-utils';
 
 const testViewport = new MapView().makeViewport({
   width: 100,
   height: 100,
   viewState: {longitude: -122, latitude: 37, zoom: 13}
+});
+const testViewport2 = new MapView().makeViewport({
+  width: 100,
+  height: 100,
+  viewState: {longitude: -100, latitude: 37, zoom: 13}
 });
 
 const TEST_LAYER = new SolidPolygonLayer({
@@ -108,6 +114,58 @@ test('CollideEffect#update', t => {
   t.ok(parameters.collideMaps['COLLIDE_GROUP'], 'collide map is in parameters');
   t.ok(parameters.collideMaps['COLLIDE_GROUP_2'], 'collide map is in parameters');
   t.ok(parameters.dummyCollideMap, 'dummy collide map is in parameters');
+
+  collideEffect.cleanup();
+  t.end();
+});
+
+// Render test using makeSpy to check CollidePass.render is called including with didRender from Mask
+test('CollideEffect#render', t => {
+  const collideEffect = new CollideEffect();
+  const layerManager = new LayerManager(gl, {viewport: testViewport});
+  const TEST_LAYER_2 = TEST_LAYER.clone({id: 'test-layer-2'});
+
+  const preRenderWithLayers = (layers, description, opts) => {
+    t.comment(description);
+    layerManager.setLayers(layers);
+    layerManager.updateLayers();
+
+    collideEffect.preRender(gl, {
+      layers: layerManager.getLayers(),
+      onViewportActive: layerManager.activateViewport,
+      viewports: [testViewport],
+      ...opts
+    });
+  };
+
+  preRenderWithLayers([TEST_LAYER], 'Initial render');
+  const collidePass = collideEffect.collidePasses['COLLIDE_GROUP'];
+  t.ok(collidePass, 'collide pass created');
+  const spy = makeSpy(collidePass, 'render');
+
+  preRenderWithLayers([TEST_LAYER], 'Initial render');
+  t.equal(spy.callCount, 0, 'Should not render if nothing changes');
+
+  preRenderWithLayers([TEST_LAYER, TEST_LAYER_2], 'add one layer');
+  t.equal(spy.callCount, 1, 'Should render when layer added');
+
+  preRenderWithLayers([TEST_LAYER], 'remove one layer');
+  t.equal(spy.callCount, 2, 'Should render when layer removed');
+
+  preRenderWithLayers([TEST_LAYER], 'change viewport', {viewports: [testViewport2]});
+  t.equal(spy.callCount, 3, 'Should render when viewport changes');
+
+  preRenderWithLayers([TEST_LAYER], 'another effect rendered', {
+    viewports: [testViewport2],
+    effects: [{useInCollide: true, didRender: true}]
+  });
+  t.equal(spy.callCount, 4, 'Should render when another effect renders');
+
+  preRenderWithLayers([TEST_LAYER], 'another effect not rendered', {
+    viewports: [testViewport2],
+    effects: [{useInCollide: true, didRender: false}]
+  });
+  t.equal(spy.callCount, 4, 'Should not render when another effect does not render');
 
   collideEffect.cleanup();
   t.end();
