@@ -57,3 +57,58 @@ test('CollideEffect#cleanup', t => {
 
   t.end();
 });
+
+test('CollideEffect#update', t => {
+  const collideEffect = new CollideEffect();
+
+  const TEST_LAYER_2 = TEST_LAYER.clone({id: 'test-layer-2'});
+  const TEST_LAYER_DIFFERENT_GROUP = TEST_LAYER.clone({
+    id: 'test-layer-different-group',
+    collideGroup: 'COLLIDE_GROUP_2'
+  });
+
+  const layerManager = new LayerManager(gl, {viewport: testViewport});
+
+  const preRenderWithLayers = (layers, description) => {
+    t.comment(description);
+    layerManager.setLayers(layers);
+    layerManager.updateLayers();
+
+    collideEffect.preRender(gl, {
+      layers: layerManager.getLayers(),
+      onViewportActive: layerManager.activateViewport,
+      viewports: [testViewport]
+    });
+  };
+
+  preRenderWithLayers([TEST_LAYER], 'Initial render');
+  let parameters = collideEffect.getModuleParameters();
+  t.equal(Object.keys(parameters.collideMaps).length, 1, 'single collide map in parameters');
+  t.ok(parameters.collideMaps['COLLIDE_GROUP'], 'collide map is in parameters');
+  t.ok(parameters.dummyCollideMap, 'dummy collide map is in parameters');
+
+  preRenderWithLayers([TEST_LAYER, TEST_LAYER_2], 'Add second collide layer');
+  parameters = collideEffect.getModuleParameters();
+  t.equal(Object.keys(parameters.collideMaps).length, 1, 'single collide map in parameters');
+  t.ok(parameters.collideMaps['COLLIDE_GROUP'], 'collide map is in parameters');
+  t.ok(parameters.dummyCollideMap, 'dummy collide map is in parameters');
+
+  preRenderWithLayers([TEST_LAYER_2], 'Remove first layer');
+  parameters = collideEffect.getModuleParameters();
+  t.equal(Object.keys(parameters.collideMaps).length, 1, 'single collide map in parameters');
+  t.ok(parameters.collideMaps['COLLIDE_GROUP'], 'collide map is in parameters');
+  t.ok(parameters.dummyCollideMap, 'dummy collide map is in parameters');
+
+  preRenderWithLayers(
+    [TEST_LAYER_2, TEST_LAYER_DIFFERENT_GROUP],
+    'Add layer with different collide group'
+  );
+  parameters = collideEffect.getModuleParameters();
+  t.equal(Object.keys(parameters.collideMaps).length, 2, 'two collide maps in parameters');
+  t.ok(parameters.collideMaps['COLLIDE_GROUP'], 'collide map is in parameters');
+  t.ok(parameters.collideMaps['COLLIDE_GROUP_2'], 'collide map is in parameters');
+  t.ok(parameters.dummyCollideMap, 'dummy collide map is in parameters');
+
+  collideEffect.cleanup();
+  t.end();
+});
